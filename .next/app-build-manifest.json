@@ -3,7 +3,6 @@
     "/(main)/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/css/app/(main)/page.css",
       "static/chunks/app/(main)/page.js"
     ],
     "/(main)/layout": [
@@ -20,7 +19,6 @@
     "/(main)/profile/[username]/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/css/app/(main)/profile/[username]/page.css",
       "static/chunks/app/(main)/profile/[username]/page.js"
     ],
     "/(main)/settings/page": [
