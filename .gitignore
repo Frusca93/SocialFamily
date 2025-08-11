@@ -1,0 +1,12 @@
+node_modules/
+.next/
+dist/
+.env
+*.sqlite
+*.db
+.DS_Store
+*.log
+coverage/
+public/*.psd
+public/*.ai
+public/*.zip

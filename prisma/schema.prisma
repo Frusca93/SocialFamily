@@ -1,0 +1,85 @@
+model FollowRequest {
+  id           String   @id @default(cuid())
+  requester    User     @relation("followRequestsSent", fields: [requesterId], references: [id])
+  requesterId  String
+  target       User     @relation("followRequestsReceived", fields: [targetId], references: [id])
+  targetId     String
+  status       String   // 'pending' | 'approved' | 'declined'
+  createdAt    DateTime @default(now())
+
+  @@unique([requesterId, targetId])
+}
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite" // cambia in "postgresql" in prod
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  username      String   @unique
+  email         String   @unique
+  image         String?  // avatar URL
+  bio           String?
+  language      String?   // 'it' | 'fr' | 'en' | 'es'
+  passwordHash  String?  // per credenziali
+  createdAt     DateTime @default(now())
+
+  posts         Post[]
+  comments      Comment[]
+  likes         Like[]
+  followers     Follow[] @relation("followers")
+  following     Follow[] @relation("following")
+
+  followRequestsSent     FollowRequest[] @relation("followRequestsSent")
+  followRequestsReceived FollowRequest[] @relation("followRequestsReceived")
+}
+
+model Post {
+  id        String    @id @default(cuid())
+  content   String
+  mediaUrl  String?
+  mediaType String?   // 'image' | 'video'
+  author    User      @relation(fields: [authorId], references: [id])
+  authorId  String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  likes     Like[]
+  comments  Comment[]
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String
+  createdAt DateTime @default(now())
+}
+
+model Follow {
+  id           String   @id @default(cuid())
+  follower     User     @relation("followers", fields: [followerId], references: [id])
+  followerId   String
+  following    User     @relation("following", fields: [followingId], references: [id])
+  followingId  String
+  createdAt    DateTime @default(now())
+
+  @@unique([followerId, followingId])
+}

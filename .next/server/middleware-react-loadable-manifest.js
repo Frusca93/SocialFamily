@@ -1,0 +1,1 @@
+self.__REACT_LOADABLE_MANIFEST="{\"components\\\\PostCard.tsx -> ./CommentsModal\":{\"id\":\"components\\\\PostCard.tsx -> ./CommentsModal\",\"files\":[\"static/chunks/_app-pages-browser_src_components_CommentsModal_tsx.js\"]}}"
