@@ -3,7 +3,7 @@ import Link from 'next/link'
 import Logo from './Logo'
 import { useState, useContext, useEffect, useRef } from 'react'
 import { useSession, signOut } from 'next-auth/react'
-import { LanguageContext } from '@/app/layout'
+import { LanguageContext } from '@/app/LanguageContext'
 
 const translations = {
   it: {

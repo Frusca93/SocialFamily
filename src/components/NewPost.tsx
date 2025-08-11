@@ -1,7 +1,7 @@
 
 'use client';
 import { useState, useRef, useContext } from 'react';
-import { LanguageContext } from '@/app/layout';
+import { LanguageContext } from '@/app/LanguageContext';
 
 export default function NewPost() {
   const [content, setContent] = useState('');

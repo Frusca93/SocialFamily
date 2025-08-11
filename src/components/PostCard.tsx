@@ -1,6 +1,6 @@
 'use client'
 import { useState, useContext } from 'react'
-import { LanguageContext } from '@/app/layout'
+import { LanguageContext } from '@/app/LanguageContext'
 import dynamic from 'next/dynamic'
 import { useSession } from 'next-auth/react'
 import DeleteConfirmModal from './DeleteConfirmModal'

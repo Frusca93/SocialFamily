@@ -1,7 +1,7 @@
 "use client";
 import NewPost from '@/components/NewPost';
 import PostCard from '@/components/PostCard';
-import { LanguageContext } from '@/app/layout';
+import { LanguageContext } from '@/app/LanguageContext';
 import { useContext } from 'react';
 
 const translations = {

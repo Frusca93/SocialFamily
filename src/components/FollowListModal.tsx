@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { LanguageContext } from '@/app/layout';
+import { LanguageContext } from '@/app/LanguageContext';
 
 const translations = {
   it: { title: 'Persone', remove: 'Rimuovi', close: 'Chiudi' },

@@ -2,7 +2,7 @@
 import { useState, useRef, useContext, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { LanguageContext } from '@/app/layout';
+import { LanguageContext } from '@/app/LanguageContext';
 
 const LANGS = [
   { code: "it", label: "Italiano" },

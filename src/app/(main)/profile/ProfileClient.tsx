@@ -2,7 +2,7 @@
 import FollowButton from '@/components/FollowButton';
 import PostCard from '@/components/PostCard';
 import FollowListModal from '@/components/FollowListModal';
-import { LanguageContext } from '@/app/layout';
+import { LanguageContext } from '@/app/LanguageContext';
 import { useContext, useState } from 'react';
 
 const translations = {

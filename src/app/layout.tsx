@@ -1,9 +1,9 @@
 "use client"
 import '../styles/globals.css'
-import { ReactNode, createContext, useState, useEffect } from 'react'
-import { SessionProvider, useSession } from 'next-auth/react'
 
-export const LanguageContext = createContext<{ lang: string, setLang: (l: string) => void }>({ lang: 'it', setLang: () => {} })
+import { ReactNode, useState, useEffect } from 'react'
+import { SessionProvider, useSession } from 'next-auth/react'
+import { LanguageContext } from './LanguageContext'
 
 function LanguageProvider({ children }: { children: ReactNode }) {
   const { data: session } = useSession?.() || {}
