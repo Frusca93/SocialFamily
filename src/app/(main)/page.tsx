@@ -31,6 +31,6 @@ export default async function FeedPage() {
     orderBy: { createdAt: 'desc' },
     include: { author: true, _count: true }
   });
-  // @ts-expect-error Async Server Component
+  return <FeedClient posts={posts} />
   return <FeedClient posts={posts} />
 }

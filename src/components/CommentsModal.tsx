@@ -2,7 +2,7 @@
 
 "use client"
 import React, { useEffect, useRef, useContext } from "react"
-import { LanguageContext } from '@/app/layout'
+import { LanguageContext } from '@/app/LanguageContext'
 
 const translations = {
   it: {
