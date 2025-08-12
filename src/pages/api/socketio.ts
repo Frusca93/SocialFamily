@@ -1,7 +1,7 @@
 import { Server } from 'socket.io';
 import { NextApiRequest } from 'next';
 
-let io: Server | null = null;
+let io: Server | undefined = undefined;
 
 export default function handler(req: NextApiRequest, res: any) {
   if (!res.socket.server.io) {

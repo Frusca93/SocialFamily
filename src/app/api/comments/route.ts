@@ -45,7 +45,7 @@ export async function POST(req: Request) {
         message: `${(session.user as any).name || 'Qualcuno'} ha commentato il tuo post`,
       }
     })
-  await sendNotification(io, post.authorId, notification)
+  await sendNotification(io || undefined, post.authorId, notification)
   }
   return Response.json(comment)
 }
