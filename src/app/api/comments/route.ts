@@ -5,7 +5,6 @@ import { authOptions } from '@/lib/auth'
 import { commentSchema } from '@/lib/validations'
 import { v2 as cloudinary } from 'cloudinary'
 import { sendNotification } from '@/lib/notify'
-import { io } from '@/pages/api/socketio'
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,

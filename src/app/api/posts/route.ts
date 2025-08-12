@@ -1,5 +1,4 @@
 import { prisma } from '@/lib/prisma'
-import { io } from '@/pages/api/socketio'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { postSchema } from '@/lib/validations'
