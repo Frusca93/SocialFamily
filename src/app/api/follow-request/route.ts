@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { commentSchema } from '@/lib/validations/comment';
+import { commentSchema } from '@/lib/validations';
 import { v2 as cloudinary } from 'cloudinary';
 
 cloudinary.config({
