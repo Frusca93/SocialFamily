@@ -12,8 +12,7 @@ export async function GET() {
     include: { requester: { select: { id: true, name: true, username: true, image: true } } },
     orderBy: { createdAt: 'desc' }
   });
-  // Mappa in formato notifica compatibile con la UI
-  const notifications = requests.map(r => ({
+  const followNotifications = requests.map(r => ({
     id: r.id,
     type: 'follow-request',
     fromUserId: r.requesterId,
@@ -21,5 +20,19 @@ export async function GET() {
     requester: r.requester,
     createdAt: r.createdAt
   }));
-  return Response.json(notifications);
+
+  // Notifiche: like e comment dal modello Notification
+  const otherNotifications = await prisma.notification.findMany({
+    where: { userId },
+    orderBy: { createdAt: 'desc' },
+    take: 50,
+  });
+
+  // Unifica e ordina tutte le notifiche
+  const allNotifications = [
+    ...followNotifications,
+    ...otherNotifications
+  ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  return Response.json(allNotifications);
 }
