@@ -20,7 +20,7 @@ export default async function PostPage({ params }: { params: { postId: string } 
   const postWithLiked = {
     ...post,
     liked: post.likes && post.likes.length > 0,
-  };
+  }; 
   return (
     <div className="max-w-xl mx-auto mt-8">
       <PostCard post={postWithLiked} />
