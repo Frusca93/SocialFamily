@@ -216,14 +216,32 @@ export default function Navbar() {
                     <ul className="max-h-80 overflow-y-auto divide-y">
                       {noti.map(n => (
                         <li key={n.id} className="flex items-center gap-2 p-3">
-                          {n.requester.image ? (
-                            <img src={n.requester.image} alt="avatar" className="h-8 w-8 rounded-full object-cover" />
+                          {n.type === 'follow-request' && n.requester ? (
+                            <>
+                              {n.requester.image ? (
+                                <img src={n.requester.image} alt="avatar" className="h-8 w-8 rounded-full object-cover" />
+                              ) : (
+                                <div className="h-8 w-8 rounded-full bg-gray-200" />
+                              )}
+                              <span className="flex-1">{n.requester.name} <span className="text-gray-500">@{n.requester.username}</span></span>
+                              <button onClick={()=>handleApprove(n.requester.id)} className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200">Accetta</button>
+                              <button onClick={()=>handleDecline(n.requester.id)} className="px-2 py-1 text-xs bg-red-100 text-red-600 rounded hover:bg-red-200">Rifiuta</button>
+                            </>
                           ) : (
-                            <div className="h-8 w-8 rounded-full bg-gray-200" />
+                            <>
+                              {/* Per like/comment: solo messaggio/link */}
+                              {n.type === 'like' && n.postId && (
+                                <Link href={`/main/${n.postId}`} className="flex-1 text-blue-700 hover:underline">{n.message}</Link>
+                              )}
+                              {n.type === 'comment' && n.postId && (
+                                <Link href={`/main/${n.postId}`} className="flex-1 text-blue-700 hover:underline">{n.message}</Link>
+                              )}
+                              {/* fallback: solo testo se manca postId */}
+                              {(!n.type || (!n.postId && n.type !== 'follow-request')) && (
+                                <span className="flex-1">{n.message}</span>
+                              )}
+                            </>
                           )}
-                          <span className="flex-1">{n.requester.name} <span className="text-gray-500">@{n.requester.username}</span></span>
-                          <button onClick={()=>handleApprove(n.requester.id)} className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200">Accetta</button>
-                          <button onClick={()=>handleDecline(n.requester.id)} className="px-2 py-1 text-xs bg-red-100 text-red-600 rounded hover:bg-red-200">Rifiuta</button>
                         </li>
                       ))}
                     </ul>
