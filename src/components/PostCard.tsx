@@ -76,7 +76,7 @@ export default function PostCard({ post }: { post: any }) {
   }
 
   return (
-    <article className="relative rounded-2xl border bg-white p-4">
+    <article id={post.id ? `post-${post.id}` : undefined} className="relative rounded-2xl border bg-white p-4">
       <header className="mb-2 flex items-center gap-3">
         {isOwner && (
           <button

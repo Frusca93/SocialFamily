@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 
 // Elimina notifiche che puntano a post non esistenti
-type Notification = { id: string; postId?: string };
+type Notification = { id: string; postId?: string | null };
 
 export async function cleanOrphanNotifications() {
   // Trova tutte le notifiche con postId

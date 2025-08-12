@@ -2,7 +2,7 @@
 import NewPost from '@/components/NewPost';
 import PostCard from '@/components/PostCard';
 import { LanguageContext } from '@/app/LanguageContext';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState, useImperativeHandle, forwardRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useSocket } from '@/lib/useSocket';
 
@@ -13,7 +13,7 @@ const translations = {
   es: { noPosts: 'Ningún post encontrado' },
 };
 
-export default function FeedClient({ posts }: { posts: any[] }) {
+const FeedClient = forwardRef(function FeedClient({ posts }: { posts: any[] }, ref) {
   const { lang } = useContext(LanguageContext);
   const t = translations[lang as keyof typeof translations] || translations.it;
   const [feedPosts, setFeedPosts] = useState(posts);
@@ -36,6 +36,12 @@ export default function FeedClient({ posts }: { posts: any[] }) {
     return () => { socket.off('new-post', handler); };
   }, [socket]);
 
+  useImperativeHandle(ref, () => ({
+    scrollToPost: (postId: string) => {
+      const el = document.getElementById(`post-${postId}`);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }), [feedPosts]);
   return (
     <div className="space-y-6">
       <NewPost />
@@ -48,4 +54,5 @@ export default function FeedClient({ posts }: { posts: any[] }) {
       </div>
     </div>
   );
-}
+});
+export default FeedClient;

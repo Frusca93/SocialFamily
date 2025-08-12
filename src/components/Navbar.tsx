@@ -1,5 +1,6 @@
 'use client'
 import Link from 'next/link'
+import { useRef as useDomRef } from 'react';
 import Logo from './Logo'
 import { useState, useContext, useEffect, useRef } from 'react'
 import { useSocket } from '@/lib/useSocket'
@@ -57,6 +58,7 @@ type UserWithUsername = {
   username?: string;
 };
 
+import FeedClient from '@/app/(main)/FeedClient';
 export default function Navbar() {
   const [q, setQ] = useState('')
   const [results, setResults] = useState<any | null>(null)
@@ -66,6 +68,7 @@ export default function Navbar() {
   const t = translations[lang as keyof typeof translations] || translations.it
 
   // Notifiche richieste follow
+  const feedRef = useDomRef<any>(null);
   const [noti, setNoti] = useState<any[]>([])
   const [showNoti, setShowNoti] = useState(false)
   const notiRef = useRef<HTMLDivElement>(null)
@@ -184,10 +187,22 @@ export default function Navbar() {
                             </>
                           )}
                           {n.type === 'like' && n.postId && (
-                            <Link href={`/main/${n.postId}`} className="flex-1 text-blue-700 hover:underline">{n.message}</Link>
+                            <button
+                              className="flex-1 text-blue-700 hover:underline text-left"
+                              onClick={() => {
+                                setShowNoti(false);
+                                setTimeout(() => feedRef.current?.scrollToPost(n.postId), 100);
+                              }}
+                            >{n.message}</button>
                           )}
                           {n.type === 'comment' && n.postId && (
-                            <Link href={`/main/${n.postId}`} className="flex-1 text-blue-700 hover:underline">{n.message}</Link>
+                            <button
+                              className="flex-1 text-blue-700 hover:underline text-left"
+                              onClick={() => {
+                                setShowNoti(false);
+                                setTimeout(() => feedRef.current?.scrollToPost(n.postId), 100);
+                              }}
+                            >{n.message}</button>
                           )}
                         </li>
                       ))}
