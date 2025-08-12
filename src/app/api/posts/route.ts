@@ -85,12 +85,7 @@ export async function POST(req: Request) {
       data: { content, mediaUrl, mediaType, authorId: (session.user as any).id },
       include: { author: true, _count: true, likes: true }
     });
-    if (io) {
-      io.emit('new-post', {
-        ...post,
-        liked: false // il creatore non mette like di default
-      });
-    }
+  // Socket.io logic removed
     return Response.json(post)
   } catch (err) {
     logError('Errore generico POST /api/posts:', err)

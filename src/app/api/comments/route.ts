@@ -4,7 +4,6 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { commentSchema } from '@/lib/validations'
 import { v2 as cloudinary } from 'cloudinary'
-import { sendNotification } from '@/lib/notify'
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
