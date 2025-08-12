@@ -45,11 +45,23 @@ export async function POST(req: Request) {
     } else if (urlFromForm) {
       mediaUrl = urlFromForm
     }
+
   } else {
-    const body = await req.json()
-    content = body.content
-    mediaUrl = body.mediaUrl
-    mediaType = body.mediaType
+    const body = await req.json();
+    content = body.content;
+    mediaType = body.mediaType;
+    // If fileBase64 is present, upload to Cloudinary
+    if (body.fileBase64) {
+      const folder = mediaType === 'video' ? 'post-videos' : 'post-images';
+      try {
+        const uploadRes = await cloudinary.uploader.upload(body.fileBase64, { folder });
+        mediaUrl = uploadRes.secure_url;
+      } catch (err) {
+        return Response.json({ error: 'Errore upload immagine' }, { status: 500 });
+      }
+    } else {
+      mediaUrl = body.mediaUrl;
+    }
   }
 
   if (!content.trim()) return Response.json({ error: 'Contenuto obbligatorio' }, { status: 400 })

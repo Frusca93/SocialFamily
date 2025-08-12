@@ -1,8 +1,13 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { writeFile } from 'fs/promises'
-import path from 'path'
+import { v2 as cloudinary } from 'cloudinary'
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+})
 
 export const runtime = 'nodejs'
 
@@ -14,14 +19,12 @@ export async function POST(req: Request) {
   const file = formData.get('file') as File | null
   if (!file) return Response.json({ error: 'Nessun file' }, { status: 400 })
 
+  // Converti il file in base64
   const arrayBuffer = await file.arrayBuffer()
-  const buffer = Buffer.from(arrayBuffer)
-  const ext = file.name.split('.').pop() || 'png'
-  const filename = `${(session.user as any).id}_${Date.now()}.${ext}`
-  const filePath = path.join(process.cwd(), 'public', 'avatars', filename)
-  await writeFile(filePath, buffer)
-
-  const imageUrl = `/avatars/${filename}`
+  const base64 = `data:${file.type};base64,${Buffer.from(arrayBuffer).toString('base64')}`
+  // Upload su Cloudinary
+  const uploadRes = await cloudinary.uploader.upload(base64, { folder: 'avatars' })
+  const imageUrl = uploadRes.secure_url
   await prisma.user.update({ where: { id: (session.user as any).id }, data: { image: imageUrl } })
   return Response.json({ ok: true, image: imageUrl })
 }
