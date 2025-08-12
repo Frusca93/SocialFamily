@@ -4,7 +4,8 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { commentSchema } from '@/lib/validations'
 import { v2 as cloudinary } from 'cloudinary'
-import { sendNotification } from '../notifications/index'
+import { sendNotification } from '@/lib/notify'
+import { io } from '@/pages/api/socketio'
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -44,7 +45,7 @@ export async function POST(req: Request) {
         message: `${(session.user as any).name || 'Qualcuno'} ha commentato il tuo post`,
       }
     })
-    await sendNotification(post.authorId, notification)
+  await sendNotification(io, post.authorId, notification)
   }
   return Response.json(comment)
 }

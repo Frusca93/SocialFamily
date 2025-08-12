@@ -3,7 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { followRequestSchema } from '@/lib/validations';
-import { sendNotification } from '../notifications/index';
+import { sendNotification } from '@/lib/notify';
+import { io } from '@/pages/api/socketio';
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -31,7 +32,7 @@ export async function POST(req: Request) {
         message: `${(session.user as any).name || 'Qualcuno'} ti ha inviato una richiesta di follow`,
       }
     })
-    await sendNotification(targetUserId, notification)
+  await sendNotification(io, targetUserId, notification)
   }
   return Response.json(followRequest);
 }

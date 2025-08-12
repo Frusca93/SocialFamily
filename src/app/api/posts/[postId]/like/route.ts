@@ -2,7 +2,8 @@
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { sendNotification } from '../../notifications/index'
+import { sendNotification } from '@/lib/notify'
+import { io } from '@/pages/api/socketio'
 
 export async function POST(_: Request, { params }: { params: { postId: string } }) {
   const session = await getServerSession(authOptions)
@@ -30,7 +31,7 @@ export async function POST(_: Request, { params }: { params: { postId: string } 
       }
     })
     // Invia la notifica in real-time
-    await sendNotification(post.authorId, notification)
+  await sendNotification(io, post.authorId, notification)
   }
   return Response.json({ liked: true })
 }
