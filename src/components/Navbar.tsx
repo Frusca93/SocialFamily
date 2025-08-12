@@ -110,15 +110,20 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
     setLoadingReq(requesterId);
     setErrorReq(null);
     try {
+      console.log('[DEBUG] handleApprove requesterId:', requesterId);
       const res = await fetch('/api/follow-request-approve', { method: 'POST', body: JSON.stringify({ requesterId }) });
+      console.log('[DEBUG] handleApprove response status:', res.status);
+      let data = {};
+      try { data = await res.json(); } catch {}
+      console.log('[DEBUG] handleApprove response data:', data);
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setErrorReq(data.error || 'Errore');
+        setErrorReq((data as any).error || 'Errore');
         return;
       }
       await reloadNotifications();
     } catch (e) {
       setErrorReq('Errore di rete');
+      console.error('[DEBUG] handleApprove exception:', e);
     } finally {
       setLoadingReq(null);
     }
