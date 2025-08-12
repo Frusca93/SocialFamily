@@ -4,6 +4,13 @@ import { authOptions } from '@/lib/auth'
 import { postSchema } from '@/lib/validations'
 import { v2 as cloudinary } from 'cloudinary'
 
+function logError(...args: any[]) {
+  try {
+    // eslint-disable-next-line no-console
+    console.error('[POSTS API]', ...args)
+  } catch {}
+}
+
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -19,53 +26,65 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions)
-  if (!session?.user) return Response.json({ error: 'Unauthorized' }, { status: 401 })
-
-
-  const contentType = req.headers.get('content-type') || ''
-  let content = ''
-  let mediaUrl = ''
-  let mediaType: string | undefined = undefined
-
-  if (contentType.startsWith('multipart/form-data')) {
-    const formData = await req.formData()
-    content = formData.get('content')?.toString() || ''
-    mediaType = formData.get('mediaType')?.toString() || undefined
-    const file = formData.get('file') as File | null
-    const urlFromForm = formData.get('mediaUrl')?.toString() || ''
-    if (file && file.size > 0) {
-      // Convert file to base64
-      const buffer = Buffer.from(await file.arrayBuffer())
-      const base64 = `data:${file.type};base64,${buffer.toString('base64')}`
-      // Upload to Cloudinary
-      const folder = mediaType === 'video' ? 'post-videos' : 'post-images'
-      const uploadRes = await cloudinary.uploader.upload(base64, { folder })
-      mediaUrl = uploadRes.secure_url
-    } else if (urlFromForm) {
-      mediaUrl = urlFromForm
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user) {
+      logError('Unauthorized')
+      return Response.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-  } else {
-    const body = await req.json();
-    content = body.content;
-    mediaType = body.mediaType;
-    // If fileBase64 is present, upload to Cloudinary
-    if (body.fileBase64) {
-      const folder = mediaType === 'video' ? 'post-videos' : 'post-images';
-      try {
-        const uploadRes = await cloudinary.uploader.upload(body.fileBase64, { folder });
-        mediaUrl = uploadRes.secure_url;
-      } catch (err) {
-        return Response.json({ error: 'Errore upload immagine' }, { status: 500 });
+    const contentType = req.headers.get('content-type') || ''
+    let content = ''
+    let mediaUrl = ''
+    let mediaType: string | undefined = undefined
+
+    if (contentType.startsWith('multipart/form-data')) {
+      const formData = await req.formData()
+      content = formData.get('content')?.toString() || ''
+      mediaType = formData.get('mediaType')?.toString() || undefined
+      const file = formData.get('file') as File | null
+      const urlFromForm = formData.get('mediaUrl')?.toString() || ''
+      if (file && file.size > 0) {
+        try {
+          const buffer = Buffer.from(await file.arrayBuffer())
+          const base64 = `data:${file.type};base64,${buffer.toString('base64')}`
+          const folder = mediaType === 'video' ? 'post-videos' : 'post-images'
+          const uploadRes = await cloudinary.uploader.upload(base64, { folder })
+          mediaUrl = uploadRes.secure_url
+        } catch (err) {
+          logError('Errore upload Cloudinary (multipart):', err)
+          return Response.json({ error: 'Errore upload immagine' }, { status: 500 })
+        }
+      } else if (urlFromForm) {
+        mediaUrl = urlFromForm
       }
     } else {
-      mediaUrl = body.mediaUrl;
+      const body = await req.json();
+      content = body.content;
+      mediaType = body.mediaType;
+      if (body.fileBase64) {
+        const folder = mediaType === 'video' ? 'post-videos' : 'post-images';
+        try {
+          const uploadRes = await cloudinary.uploader.upload(body.fileBase64, { folder });
+          mediaUrl = uploadRes.secure_url;
+        } catch (err) {
+          logError('Errore upload Cloudinary (fileBase64):', err)
+          return Response.json({ error: 'Errore upload immagine' }, { status: 500 });
+        }
+      } else {
+        mediaUrl = body.mediaUrl;
+      }
     }
+
+    if (!content.trim()) {
+      logError('Contenuto obbligatorio mancante')
+      return Response.json({ error: 'Contenuto obbligatorio' }, { status: 400 })
+    }
+
+    const post = await prisma.post.create({ data: { content, mediaUrl, mediaType, authorId: (session.user as any).id } })
+    return Response.json(post)
+  } catch (err) {
+    logError('Errore generico POST /api/posts:', err)
+    return Response.json({ error: 'Errore generico' }, { status: 500 })
   }
-
-  if (!content.trim()) return Response.json({ error: 'Contenuto obbligatorio' }, { status: 400 })
-
-  const post = await prisma.post.create({ data: { content, mediaUrl, mediaType, authorId: (session.user as any).id } })
-  return Response.json(post)
 }
