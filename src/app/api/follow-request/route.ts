@@ -14,8 +14,9 @@ export async function POST(req: Request) {
   // Crea la richiesta di follow
   const followRequest = await prisma.followRequest.create({
     data: {
-      fromId: (session.user as any).id,
-      toId: targetUserId,
+      requesterId: (session.user as any).id,
+      targetId: targetUserId,
+      status: 'pending',
     }
   });
   return Response.json(followRequest);
