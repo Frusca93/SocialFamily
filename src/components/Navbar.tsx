@@ -1,6 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { useRef as useDomRef } from 'react';
+import { useScrollToPost } from '@/app/(main)/ScrollToPostContext';
 import Logo from './Logo'
 import { useState, useContext, useEffect, useRef } from 'react'
 import { useSocket } from '@/lib/useSocket'
@@ -59,10 +60,7 @@ type UserWithUsername = {
 };
 
 type NavbarProps = {
-  onScrollToPost?: (postId: string) => void;
-};
-
-export default function Navbar({ onScrollToPost }: NavbarProps) {
+export default function Navbar() {
   const [q, setQ] = useState('')
   const [results, setResults] = useState<any | null>(null)
   const { data: session } = useSession()
@@ -72,6 +70,7 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
 
   // Notifiche richieste follow
   const feedRef = useDomRef<any>(null);
+  const onScrollToPost = useScrollToPost();
   const [noti, setNoti] = useState<any[]>([])
   const [showNoti, setShowNoti] = useState(false)
   const notiRef = useRef<HTMLDivElement>(null)
@@ -194,9 +193,7 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                               className="flex-1 text-blue-700 hover:underline text-left"
                               onClick={() => {
                                 setShowNoti(false);
-                                if (onScrollToPost) {
-                                  setTimeout(() => onScrollToPost(n.postId), 100);
-                                }
+                                setTimeout(() => onScrollToPost(n.postId), 100);
                               }}
                             >{n.message}</button>
                           )}
@@ -205,9 +202,7 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                               className="flex-1 text-blue-700 hover:underline text-left"
                               onClick={() => {
                                 setShowNoti(false);
-                                if (onScrollToPost) {
-                                  setTimeout(() => onScrollToPost(n.postId), 100);
-                                }
+                                setTimeout(() => onScrollToPost(n.postId), 100);
                               }}
                             >{n.message}</button>
                           )}
@@ -296,9 +291,7 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                                   className="flex-1 text-blue-700 hover:underline text-left"
                                   onClick={() => {
                                     setShowNoti(false);
-                                    if (onScrollToPost) {
-                                      setTimeout(() => onScrollToPost(n.postId), 100);
-                                    }
+                                    setTimeout(() => onScrollToPost(n.postId), 100);
                                   }}
                                 >{n.message}</button>
                               )}
@@ -307,9 +300,7 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                                   className="flex-1 text-blue-700 hover:underline text-left"
                                   onClick={() => {
                                     setShowNoti(false);
-                                    if (onScrollToPost) {
-                                      setTimeout(() => onScrollToPost(n.postId), 100);
-                                    }
+                                    setTimeout(() => onScrollToPost(n.postId), 100);
                                   }}
                                 >{n.message}</button>
                               )}
