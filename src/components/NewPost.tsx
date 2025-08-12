@@ -1,8 +1,7 @@
 
 'use client';
 import { useState, useRef, useContext } from 'react';
-import { FaPlus } from 'react-icons/fa';
-  const [showDropdown, setShowDropdown] = useState(false);
+  // Rimossa la logica del dropdown
 import { LanguageContext } from '@/app/LanguageContext';
 
 export default function NewPost() {
@@ -109,16 +108,7 @@ export default function NewPost() {
   return (
     <form onSubmit={submit} className="rounded-2xl border bg-white p-4 flex flex-col gap-2">
       <textarea value={content} onChange={e=>setContent(e.target.value)} placeholder={t.placeholder} className="w-full resize-none rounded-xl border p-3" />
-      <div className="flex gap-2 mt-2 items-center">
-        <button
-          type="button"
-          className="rounded-full border bg-blue-600 text-white p-2 flex items-center justify-center hover:bg-blue-700"
-          onClick={() => setShowDropdown(v => !v)}
-          aria-label="Aggiungi media"
-        >
-          <FaPlus />
-        </button>
-        <span className="ml-2 font-semibold text-blue-600">{mediaType === 'image' ? t.image : t.video}</span>
+      <div className="flex gap-2 mt-2">
         <button
           type="button"
           className={`rounded-xl border px-3 py-2 font-semibold ${mediaType==='image' ? 'bg-blue-600 text-white' : 'bg-white text-blue-600'}`}
@@ -134,37 +124,35 @@ export default function NewPost() {
           {t.video}
         </button>
       </div>
-      {showDropdown && (
-        <div className="flex flex-col gap-2 mt-2 bg-gray-50 p-3 rounded-xl border shadow">
-          <input
-            value={mediaUrl}
-            onChange={e => { setMediaUrl(e.target.value); setFile(null); setFilePreview(null) }}
-            placeholder={mediaType === 'image' ? t.urlImage : t.urlVideo}
-            className="rounded-xl border px-3 py-2"
-          />
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept={mediaType === 'image' ? 'image/*' : 'video/*'}
-            className="hidden"
-            onChange={handleFileChange}
-          />
-          <button
-            type="button"
-            className="rounded-xl border bg-blue-100 px-3 py-2 text-blue-700 w-fit"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            {mediaType === 'image' ? t.uploadImage : t.uploadVideo}
-          </button>
-        </div>
-      )}
-      {filePreview && (
-        mediaType === 'image' ? (
-          <img src={filePreview} alt="preview" className="mt-2 max-h-48 rounded-xl border object-contain" />
-        ) : (
-          <video src={filePreview} controls className="mt-2 max-h-48 rounded-xl border object-contain" />
-        )
-      )}
+      <input
+        value={mediaUrl}
+        onChange={e => { setMediaUrl(e.target.value); setFile(null); setFilePreview(null) }}
+        placeholder={mediaType === 'image' ? t.urlImage : t.urlVideo}
+        className="rounded-xl border px-3 py-2 mt-2"
+      />
+      <div className="flex flex-col gap-2 mt-2">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={mediaType === 'image' ? 'image/*' : 'video/*'}
+          className="hidden"
+          onChange={handleFileChange}
+        />
+        <button
+          type="button"
+          className="rounded-xl border bg-blue-100 px-3 py-2 text-blue-700 w-fit"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          {mediaType === 'image' ? t.uploadImage : t.uploadVideo}
+        </button>
+        {filePreview && (
+          mediaType === 'image' ? (
+            <img src={filePreview} alt="preview" className="mt-2 max-h-48 rounded-xl border object-contain" />
+          ) : (
+            <video src={filePreview} controls className="mt-2 max-h-48 rounded-xl border object-contain" />
+          )
+        )}
+      </div>
       <div className="flex justify-start mt-4">
         <button
           disabled={loading || !content}
