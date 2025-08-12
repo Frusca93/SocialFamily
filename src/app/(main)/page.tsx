@@ -1,4 +1,6 @@
 
+import NewPost from '@/components/NewPost'
+import PostCard from '@/components/PostCard'
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
@@ -11,14 +13,14 @@ export default async function FeedPage() {
   if (!session?.user) {
     redirect('/login')
   }
-  const userId = (session.user as any).id
-
+  const userId = (session.user as any).id;
+  // Trova gli ID degli utenti seguiti
   const following = await prisma.follow.findMany({
     where: { followerId: userId },
     select: { followingId: true }
-  })
-  const followingIds = following.map(f => f.followingId)
-
+  });
+  const followingIds = following.map(f => f.followingId);
+  // Mostra solo i post dell'utente loggato o di chi segue
   const posts = await prisma.post.findMany({
     where: {
       OR: [
@@ -28,7 +30,7 @@ export default async function FeedPage() {
     },
     orderBy: { createdAt: 'desc' },
     include: { author: true, _count: true }
-  })
-
+  });
+  return <FeedClient posts={posts} />
   return <FeedClient posts={posts} />
 }
