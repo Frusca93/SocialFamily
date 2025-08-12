@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { io } from '@/pages/api/socketio'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { postSchema } from '@/lib/validations'
@@ -81,7 +82,16 @@ export async function POST(req: Request) {
       return Response.json({ error: 'Contenuto obbligatorio' }, { status: 400 })
     }
 
-    const post = await prisma.post.create({ data: { content, mediaUrl, mediaType, authorId: (session.user as any).id } })
+    const post = await prisma.post.create({
+      data: { content, mediaUrl, mediaType, authorId: (session.user as any).id },
+      include: { author: true, _count: true, likes: true }
+    });
+    if (io) {
+      io.emit('new-post', {
+        ...post,
+        liked: false // il creatore non mette like di default
+      });
+    }
     return Response.json(post)
   } catch (err) {
     logError('Errore generico POST /api/posts:', err)
