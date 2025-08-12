@@ -19,5 +19,7 @@ export async function POST(req: Request) {
   });
   // Crea relazione follow
   await prisma.follow.create({ data: { followerId: requesterId, followingId: targetId } });
+  // Elimina la richiesta di follow (così sparisce dalle notifiche)
+  await prisma.followRequest.delete({ where: { requesterId_targetId: { requesterId, targetId } } });
   return Response.json({ success: true });
 }

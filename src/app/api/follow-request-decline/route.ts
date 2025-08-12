@@ -17,5 +17,7 @@ export async function POST(req: Request) {
     where: { requesterId_targetId: { requesterId, targetId } },
     data: { status: 'declined' }
   });
+  // Elimina la richiesta di follow (così sparisce dalle notifiche)
+  await prisma.followRequest.delete({ where: { requesterId_targetId: { requesterId, targetId } } });
   return Response.json({ success: true });
 }
