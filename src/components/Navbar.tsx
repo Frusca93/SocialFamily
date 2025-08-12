@@ -94,11 +94,11 @@ export default function Navbar() {
 
   async function handleApprove(requesterId: string) {
     await fetch('/api/follow-request-approve', { method: 'POST', body: JSON.stringify({ requesterId }) })
-    setNoti(noti.filter(n => n.requester.id !== requesterId))
+  setNoti(noti.filter(n => n.fromUserId !== requesterId))
   }
   async function handleDecline(requesterId: string) {
     await fetch('/api/follow-request-decline', { method: 'POST', body: JSON.stringify({ requesterId }) })
-    setNoti(noti.filter(n => n.requester.id !== requesterId))
+  setNoti(noti.filter(n => n.fromUserId !== requesterId))
   }
 
   async function onSearch(e: React.FormEvent){
