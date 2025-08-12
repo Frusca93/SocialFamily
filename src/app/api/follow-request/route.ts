@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { followRequestSchema } from '@/lib/validations';
 
+export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
   const body = await req.json();
@@ -19,3 +20,4 @@ import { followRequestSchema } from '@/lib/validations';
   });
   return Response.json(followRequest);
 }
+
