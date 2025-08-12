@@ -29,8 +29,7 @@ export async function POST(_: Request, { params }: { params: { postId: string } 
         message: `${(session.user as any).name || 'Qualcuno'} ha messo Mi piace al tuo post`,
       }
     })
-    // Invia la notifica in real-time
-  await sendNotification(io, post.authorId, notification)
+  // Notifiche realtime rimosse: ora non fa nulla
   }
   return Response.json({ liked: true })
 }
