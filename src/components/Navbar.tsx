@@ -4,7 +4,6 @@ import { useRef as useDomRef } from 'react';
 import { useScrollToPost } from '@/app/(main)/ScrollToPostContext';
 import Logo from './Logo'
 import { useState, useContext, useEffect, useRef } from 'react'
-import { useSocket } from '@/lib/useSocket'
 import { useSession, signOut } from 'next-auth/react'
 import { LanguageContext } from '@/app/LanguageContext'
 
@@ -76,17 +75,10 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
   const [noti, setNoti] = useState<any[]>([])
   const [showNoti, setShowNoti] = useState(false)
   const notiRef = useRef<HTMLDivElement>(null)
-  // Socket.io: ricevi notifiche in tempo reale
-  const socket = useSocket(user?.id || null)
   useEffect(() => {
     if (!user?.id) return;
     fetch('/api/notifications').then(r=>r.json()).then(setNoti)
-    if (!socket) return;
-    socket.on('notification', (notification: any) => {
-      setNoti(prev => [notification, ...prev])
-    })
-    return () => { socket.off('notification') }
-  }, [user?.id, socket])
+  }, [user?.id])
 
   // Burger menu mobile
   const [showMenu, setShowMenu] = useState(false)
