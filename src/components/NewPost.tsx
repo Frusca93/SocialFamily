@@ -61,20 +61,30 @@ export default function NewPost() {
     e.preventDefault();
     setLoading(true);
     if (file) {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('content', content);
-      formData.append('mediaType', mediaType);
-      const res = await fetch('/api/posts', { method: 'POST', body: formData });
-      setLoading(false);
-      if (res.ok) {
-        setContent(''); setMediaUrl(''); setFile(null); setFilePreview(null);
-        window.location.reload();
-      }
+      // Leggi il file come base64
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64 = reader.result as string;
+        const res = await fetch('/api/posts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content, mediaType, fileBase64: base64 })
+        });
+        setLoading(false);
+        if (res.ok) {
+          setContent(''); setMediaUrl(''); setFile(null); setFilePreview(null);
+          window.location.reload();
+        }
+      };
+      reader.readAsDataURL(file);
       return;
     }
     // fallback: solo URL
-    const res = await fetch('/api/posts', { method: 'POST', body: JSON.stringify({ content, mediaUrl, mediaType }) });
+    const res = await fetch('/api/posts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content, mediaUrl, mediaType })
+    });
     setLoading(false);
     if (res.ok) {
       setContent(''); setMediaUrl('');
