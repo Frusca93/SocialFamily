@@ -12,6 +12,7 @@ export default function NewPost() {
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const { lang } = useContext(LanguageContext);
 
   const translations = {
@@ -138,13 +139,34 @@ export default function NewPost() {
           className="hidden"
           onChange={handleFileChange}
         />
-        <button
-          type="button"
-          className="rounded-xl border bg-blue-100 px-3 py-2 text-blue-700 w-fit"
-          onClick={() => fileInputRef.current?.click()}
-        >
-          {mediaType === 'image' ? t.uploadImage : t.uploadVideo}
-        </button>
+        {mediaType === 'image' && (
+          <input
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+        )}
+        <div className="flex gap-2">
+          <button
+            type="button"
+            className="rounded-xl border bg-blue-100 px-3 py-2 text-blue-700 w-fit"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            {mediaType === 'image' ? t.uploadImage : t.uploadVideo}
+          </button>
+          {mediaType === 'image' && (
+            <button
+              type="button"
+              className="rounded-xl border bg-green-100 px-3 py-2 text-green-700 w-fit"
+              onClick={() => cameraInputRef.current?.click()}
+            >
+              Fai una foto
+            </button>
+          )}
+        </div>
         {filePreview && (
           mediaType === 'image' ? (
             <img src={filePreview} alt="preview" className="mt-2 max-h-48 rounded-xl border object-contain" />
