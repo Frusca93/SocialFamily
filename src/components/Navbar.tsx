@@ -59,7 +59,11 @@ type UserWithUsername = {
   username?: string;
 };
 
-export default function Navbar() {
+type NavbarProps = {
+  onScrollToPost?: (postId: string) => void;
+};
+
+export default function Navbar({ onScrollToPost }: NavbarProps) {
   const [q, setQ] = useState('')
   const [results, setResults] = useState<any | null>(null)
   const { data: session } = useSession()
@@ -68,8 +72,7 @@ export default function Navbar() {
   const t = translations[lang as keyof typeof translations] || translations.it
 
   // Notifiche richieste follow
-  const feedRef = useDomRef<any>(null);
-  const onScrollToPost = useScrollToPost();
+  // const feedRef = useDomRef<any>(null);
   const [noti, setNoti] = useState<any[]>([])
   const [showNoti, setShowNoti] = useState(false)
   const notiRef = useRef<HTMLDivElement>(null)
@@ -98,6 +101,11 @@ export default function Navbar() {
 
   const [loadingReq, setLoadingReq] = useState<string | null>(null);
   const [errorReq, setErrorReq] = useState<string | null>(null);
+  async function reloadNotifications() {
+    if (!user?.id) return;
+    const res = await fetch('/api/notifications');
+    setNoti(await res.json());
+  }
   async function handleApprove(requesterId: string) {
     setLoadingReq(requesterId);
     setErrorReq(null);
@@ -108,7 +116,7 @@ export default function Navbar() {
         setErrorReq(data.error || 'Errore');
         return;
       }
-  setNoti(noti.filter(n => !(n.type === 'follow-request' && n.fromUserId === requesterId)));
+      await reloadNotifications();
     } catch (e) {
       setErrorReq('Errore di rete');
     } finally {
@@ -125,7 +133,7 @@ export default function Navbar() {
         setErrorReq(data.error || 'Errore');
         return;
       }
-  setNoti(noti.filter(n => !(n.type === 'follow-request' && n.fromUserId === requesterId)));
+      await reloadNotifications();
     } catch (e) {
       setErrorReq('Errore di rete');
     } finally {
@@ -203,7 +211,7 @@ export default function Navbar() {
                               className="flex-1 text-blue-700 hover:underline text-left"
                               onClick={() => {
                                 setShowNoti(false);
-                                setTimeout(() => { if (onScrollToPost) onScrollToPost(n.postId); }, 100);
+                                if (onScrollToPost) setTimeout(() => onScrollToPost(n.postId), 100);
                               }}
                             >{n.message}</button>
                           )}
@@ -212,7 +220,7 @@ export default function Navbar() {
                               className="flex-1 text-blue-700 hover:underline text-left"
                               onClick={() => {
                                 setShowNoti(false);
-                                setTimeout(() => { if (onScrollToPost) onScrollToPost(n.postId); }, 100);
+                                if (onScrollToPost) setTimeout(() => onScrollToPost(n.postId), 100);
                               }}
                             >{n.message}</button>
                           )}
