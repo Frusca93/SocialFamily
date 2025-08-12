@@ -1,28 +1,36 @@
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { commentSchema } from '@/lib/validations/comment';
+import { v2 as cloudinary } from 'cloudinary';
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
-  const { targetUserId } = await req.json();
-  const requesterId = (session.user as any).id;
-  if (targetUserId === requesterId) return Response.json({ error: 'Non puoi seguirti' }, { status: 400 });
-  // Se già esiste follow approvato, errore
-  const alreadyFollowing = await prisma.follow.findUnique({
-    where: { followerId_followingId: { followerId: requesterId, followingId: targetUserId } }
+  const body = await req.json();
+  const parsed = commentSchema.safeParse(body);
+  if (!parsed.success) return Response.json({ error: 'Dati non validi' }, { status: 400 });
+  const { postId, content, fileBase64 } = body;
+
+  let imageUrl = null;
+  if (fileBase64) {
+    const uploadRes = await cloudinary.uploader.upload(fileBase64, { folder: 'post-images' });
+    imageUrl = uploadRes.secure_url;
+  }
+
+  const comment = await prisma.comment.create({
+    data: {
+      postId,
+      content,
+      authorId: (session.user as any).id,
+      image: imageUrl // aggiungi il campo image al modello se serve
+    }
   });
-  if (alreadyFollowing) return Response.json({ error: 'Sei già un follower' }, { status: 400 });
-  // Se già esiste richiesta pending, errore
-  const existingRequest = await prisma.followRequest.findUnique({
-    where: { requesterId_targetId: { requesterId, targetId: targetUserId } }
-  });
-  if (existingRequest && existingRequest.status === 'pending') return Response.json({ error: 'Richiesta già inviata' }, { status: 400 });
-  // Crea richiesta
-  const reqFollow = await prisma.followRequest.upsert({
-    where: { requesterId_targetId: { requesterId, targetId: targetUserId } },
-    update: { status: 'pending' },
-    create: { requesterId, targetId: targetUserId, status: 'pending' }
-  });
-  return Response.json({ success: true, request: reqFollow });
+  return Response.json(comment);
 }

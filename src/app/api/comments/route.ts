@@ -1,3 +1,15 @@
+import { prisma } from '@/lib/prisma'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { commentSchema } from '@/lib/validations'
+import { v2 as cloudinary } from 'cloudinary'
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+})
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const postId = searchParams.get('postId')
@@ -9,10 +21,6 @@ export async function GET(req: Request) {
   })
   return Response.json(comments)
 }
-import { prisma } from '@/lib/prisma'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
-import { commentSchema } from '@/lib/validations'
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions)
@@ -23,4 +31,16 @@ export async function POST(req: Request) {
   const { postId, content } = parsed.data
   const comment = await prisma.comment.create({ data: { postId, content, authorId: (session.user as any).id } })
   return Response.json(comment)
+}
+
+export async function uploadImage(req: Request) {
+  const { fileBase64 } = await req.json()
+
+  // Upload su Cloudinary
+  const uploadRes = await cloudinary.uploader.upload(fileBase64, {
+    folder: 'post-images',
+  })
+
+  // Salva uploadRes.secure_url nel database come mediaUrl
+  return Response.json({ url: uploadRes.secure_url })
 }
