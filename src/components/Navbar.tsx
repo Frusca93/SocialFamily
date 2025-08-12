@@ -92,13 +92,41 @@ export default function Navbar() {
     return () => document.removeEventListener('mousedown', handle)
   }, [showNoti])
 
+  const [loadingReq, setLoadingReq] = useState<string | null>(null);
+  const [errorReq, setErrorReq] = useState<string | null>(null);
   async function handleApprove(requesterId: string) {
-    await fetch('/api/follow-request-approve', { method: 'POST', body: JSON.stringify({ requesterId }) })
-  setNoti(noti.filter(n => n.fromUserId !== requesterId))
+    setLoadingReq(requesterId);
+    setErrorReq(null);
+    try {
+      const res = await fetch('/api/follow-request-approve', { method: 'POST', body: JSON.stringify({ requesterId }) });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setErrorReq(data.error || 'Errore');
+        return;
+      }
+      setNoti(noti.filter(n => n.fromUserId !== requesterId));
+    } catch (e) {
+      setErrorReq('Errore di rete');
+    } finally {
+      setLoadingReq(null);
+    }
   }
   async function handleDecline(requesterId: string) {
-    await fetch('/api/follow-request-decline', { method: 'POST', body: JSON.stringify({ requesterId }) })
-  setNoti(noti.filter(n => n.fromUserId !== requesterId))
+    setLoadingReq(requesterId);
+    setErrorReq(null);
+    try {
+      const res = await fetch('/api/follow-request-decline', { method: 'POST', body: JSON.stringify({ requesterId }) });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setErrorReq(data.error || 'Errore');
+        return;
+      }
+      setNoti(noti.filter(n => n.fromUserId !== requesterId));
+    } catch (e) {
+      setErrorReq('Errore di rete');
+    } finally {
+      setLoadingReq(null);
+    }
   }
 
   async function onSearch(e: React.FormEvent){
@@ -140,8 +168,19 @@ export default function Navbar() {
                           {n.type === 'follow-request' && n.fromUserId && (
                             <>
                               <span className="flex-1">{n.message}</span>
-                              <button onClick={()=>handleApprove(n.fromUserId)} className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200">Accetta</button>
-                              <button onClick={()=>handleDecline(n.fromUserId)} className="px-2 py-1 text-xs bg-red-100 text-red-600 rounded hover:bg-red-200">Rifiuta</button>
+                              <button
+                                onClick={()=>handleApprove(n.fromUserId)}
+                                className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 disabled:opacity-60"
+                                disabled={loadingReq === n.fromUserId}
+                              >{loadingReq === n.fromUserId ? '...' : 'Accetta'}</button>
+                              <button
+                                onClick={()=>handleDecline(n.fromUserId)}
+                                className="px-2 py-1 text-xs bg-red-100 text-red-600 rounded hover:bg-red-200 disabled:opacity-60"
+                                disabled={loadingReq === n.fromUserId}
+                              >{loadingReq === n.fromUserId ? '...' : 'Rifiuta'}</button>
+                {errorReq && (
+                  <div className="text-red-500 text-xs p-2">{errorReq}</div>
+                )}
                             </>
                           )}
                           {n.type === 'like' && n.postId && (
