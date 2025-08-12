@@ -10,7 +10,7 @@ export default async function PostPage({ params }: { params: { postId: string } 
   const userId = (session.user as any).id;
   const post = await prisma.post.findUnique({
     where: { id: params.postId },
-    include: {
+    include: { 
       author: true,
       _count: true,
       likes: { where: { userId } },
