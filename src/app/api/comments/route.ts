@@ -44,7 +44,7 @@ export async function POST(req: Request) {
         message: `${(session.user as any).name || 'Qualcuno'} ha commentato il tuo post`,
       }
     })
-  await sendNotification(io || undefined, post.authorId, notification)
+  // Notifiche realtime rimosse: ora non fa nulla
   }
   return Response.json(comment)
 }
