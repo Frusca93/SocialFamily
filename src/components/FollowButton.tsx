@@ -8,6 +8,7 @@ export default function FollowButton({ targetUserId, initialFollowing = false, i
   const [requestStatus, setRequestStatus] = useState<FollowState>(initialRequestStatus || (initialFollowing ? 'approved' : 'none'))
   const [loading, setLoading] = useState(false)
 
+
   async function handleRequest(){
     setLoading(true)
     const res = await fetch('/api/follow-request', { method: 'POST', body: JSON.stringify({ targetUserId }) })
@@ -16,6 +17,11 @@ export default function FollowButton({ targetUserId, initialFollowing = false, i
     else {
       const data = await res.json().catch(()=>null)
       if(data?.error?.includes('già inviata')) setRequestStatus('pending')
+      // Se il backend risponde che non segui più, resetta lo stato
+      if(data?.error?.toLowerCase().includes('not following') || data?.error?.toLowerCase().includes('non segui')) {
+        setFollowing(false);
+        setRequestStatus('none');
+      }
     }
   }
 
