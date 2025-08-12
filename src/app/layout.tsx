@@ -1,9 +1,16 @@
-"use client"
 import '../styles/globals.css'
-
+import type { Metadata } from 'next'
 import { ReactNode, useState, useEffect } from 'react'
 import { SessionProvider, useSession } from 'next-auth/react'
 import { LanguageContext } from './LanguageContext'
+
+export const metadata: Metadata = {
+  title: 'SocialFamily',
+  description: 'Un social network per la famiglia',
+  icons: {
+    icon: '/logo2.png', // Usa il logo esistente come favicon
+  }
+}
 
 function LanguageProvider({ children }: { children: ReactNode }) {
   const { data: session } = useSession?.() || {}
