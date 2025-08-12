@@ -192,7 +192,7 @@ export default function Navbar() {
                               className="flex-1 text-blue-700 hover:underline text-left"
                               onClick={() => {
                                 setShowNoti(false);
-                                setTimeout(() => onScrollToPost(n.postId), 100);
+                                if (onScrollToPost) setTimeout(() => onScrollToPost(n.postId), 100);
                               }}
                             >{n.message}</button>
                           )}
@@ -201,7 +201,7 @@ export default function Navbar() {
                               className="flex-1 text-blue-700 hover:underline text-left"
                               onClick={() => {
                                 setShowNoti(false);
-                                setTimeout(() => onScrollToPost(n.postId), 100);
+                                if (onScrollToPost) setTimeout(() => onScrollToPost(n.postId), 100);
                               }}
                             >{n.message}</button>
                           )}
@@ -290,7 +290,7 @@ export default function Navbar() {
                                   className="flex-1 text-blue-700 hover:underline text-left"
                                   onClick={() => {
                                     setShowNoti(false);
-                                    setTimeout(() => onScrollToPost(n.postId), 100);
+                                    if (onScrollToPost) setTimeout(() => onScrollToPost(n.postId), 100);
                                   }}
                                 >{n.message}</button>
                               )}
@@ -299,7 +299,7 @@ export default function Navbar() {
                                   className="flex-1 text-blue-700 hover:underline text-left"
                                   onClick={() => {
                                     setShowNoti(false);
-                                    setTimeout(() => onScrollToPost(n.postId), 100);
+                                    if (onScrollToPost) setTimeout(() => onScrollToPost(n.postId), 100);
                                   }}
                                 >{n.message}</button>
                               )}
