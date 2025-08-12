@@ -31,7 +31,7 @@ export async function POST(req: Request) {
         message: `${(session.user as any).name || 'Qualcuno'} ti ha inviato una richiesta di follow`,
       }
     })
-  await sendNotification(io, targetUserId, notification)
+  // Notifiche realtime rimosse: ora non fa nulla
   }
   return Response.json(followRequest);
 }
