@@ -1,3 +1,4 @@
+"use client"
 import { ReactNode, useRef } from 'react'
 import Navbar from '@/components/Navbar'
 import { ScrollToPostContext } from './ScrollToPostContext'
