@@ -1,6 +1,3 @@
-
-import NewPost from '@/components/NewPost'
-import PostCard from '@/components/PostCard'
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
@@ -31,6 +28,5 @@ export default async function FeedPage() {
     orderBy: { createdAt: 'desc' },
     include: { author: true, _count: true }
   });
-  return <FeedClient posts={posts} />
   return <FeedClient posts={posts} />
 }
