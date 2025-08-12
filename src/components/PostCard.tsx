@@ -57,11 +57,13 @@ export default function PostCard({ post }: { post: any }) {
     }
   }
 
+  const [liked, setLiked] = useState(post.liked ?? false);
   async function toggleLike() {
     const res = await fetch(`/api/posts/${post.id}/like`, { method: 'POST' })
     if (!res.ok) return
     const data = await res.json()
     setLikes(v => v + (data.liked ? 1 : -1))
+    setLiked(data.liked)
   }
 
   async function addComment(e: React.FormEvent) {
@@ -124,7 +126,27 @@ export default function PostCard({ post }: { post: any }) {
           )
       )}
       <footer className="mt-3 flex items-center gap-4 text-sm">
-        <button onClick={toggleLike} className="rounded-xl border px-3 py-1">{t.like} ({likes})</button>
+        <button
+          onClick={toggleLike}
+          className="rounded-xl border px-3 py-1 flex items-center gap-2 group"
+          aria-label={t.like}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill={liked ? '#ef4444' : 'none'}
+            stroke={liked ? '#ef4444' : 'black'}
+            strokeWidth={1.5}
+            className="w-6 h-6 transition-colors"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M16.5 3.75c-1.74 0-3.41 1.01-4.5 2.62C10.91 4.76 9.24 3.75 7.5 3.75 4.42 3.75 2 6.16 2 9.21c0 3.4 3.4 6.13 8.55 10.29a1.5 1.5 0 0 0 1.9 0C18.6 15.34 22 12.61 22 9.21c0-3.05-2.42-5.46-5.5-5.46z"
+            />
+          </svg>
+          <span className="ml-1">{likes}</span>
+        </button>
         <button onClick={() => setShowComments(true)} className="rounded-xl border px-3 py-1">{t.comments}: {comments}</button>
       </footer>
       <form onSubmit={addComment} className="mt-2 flex gap-2">
