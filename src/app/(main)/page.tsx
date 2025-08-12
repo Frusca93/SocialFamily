@@ -11,7 +11,7 @@ import FeedClient from './FeedClient'
 export default async function FeedPage() {
   const session = await getServerSession(authOptions)
   if (!session?.user) {
-    redirect('/login')
+    redirect('/login') 
   }
   const userId = (session.user as any).id;
   // Trova gli ID degli utenti seguiti
