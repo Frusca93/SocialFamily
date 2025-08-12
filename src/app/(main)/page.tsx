@@ -29,7 +29,16 @@ export default async function FeedPage() {
       ]
     },
     orderBy: { createdAt: 'desc' },
-    include: { author: true, _count: true }
+    include: {
+      author: true,
+      _count: true,
+      likes: { where: { userId } },
+    },
   });
-  return <FeedClient posts={posts} />
+  // Aggiungi proprietà liked per ogni post
+  const postsWithLiked = posts.map(p => ({
+    ...p,
+    liked: p.likes && p.likes.length > 0,
+  }));
+  return <FeedClient posts={postsWithLiked} />
 }

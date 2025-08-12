@@ -9,6 +9,13 @@ export default function handler(req: NextApiRequest, res: any) {
       path: '/api/socketio',
       addTrailingSlash: false,
     });
+    io.on('connection', (socket) => {
+      socket.on('join', (userId: string) => {
+        if (userId) {
+          socket.join(userId);
+        }
+      });
+    });
     res.socket.server.io = io;
   }
   res.end();
