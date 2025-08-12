@@ -4,6 +4,7 @@ import '../styles/globals.css'
 import { ReactNode, useState, useEffect } from 'react'
 import { SessionProvider, useSession } from 'next-auth/react'
 import { LanguageContext } from './LanguageContext'
+import SocketProvider from '@/components/SocketProvider'
 
 function LanguageProvider({ children }: { children: ReactNode }) {
   const { data: session } = useSession?.() || {}
@@ -29,7 +30,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body className="min-h-screen bg-gray-50 text-gray-900">
         <SessionProvider>
-          <LanguageProvider>{children}</LanguageProvider>
+          <SocketProvider>
+            <LanguageProvider>{children}</LanguageProvider>
+          </SocketProvider>
         </SessionProvider>
       </body>
     </html>
