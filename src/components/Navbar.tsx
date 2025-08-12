@@ -2,6 +2,7 @@
 import Link from 'next/link'
 import Logo from './Logo'
 import { useState, useContext, useEffect, useRef } from 'react'
+import { useSocket } from '@/lib/useSocket'
 import { useSession, signOut } from 'next-auth/react'
 import { LanguageContext } from '@/app/LanguageContext'
 
@@ -67,10 +68,17 @@ export default function Navbar() {
   const [noti, setNoti] = useState<any[]>([])
   const [showNoti, setShowNoti] = useState(false)
   const notiRef = useRef<HTMLDivElement>(null)
+  // Socket.io: ricevi notifiche in tempo reale
+  const socket = useSocket(user?.id || null)
   useEffect(() => {
-    if (!user?.username) return;
+    if (!user?.id) return;
     fetch('/api/notifications').then(r=>r.json()).then(setNoti)
-  }, [user?.username])
+    if (!socket) return;
+    socket.on('notification', (notification: any) => {
+      setNoti(prev => [notification, ...prev])
+    })
+    return () => { socket.off('notification') }
+  }, [user?.id, socket])
 
   // Burger menu mobile
   const [showMenu, setShowMenu] = useState(false)
@@ -123,19 +131,24 @@ export default function Navbar() {
                 <div className="absolute right-0 mt-2 w-72 sm:w-80 rounded-xl border bg-white shadow-lg z-50">
                   <div className="p-3 font-semibold border-b">Richieste di follow</div>
                   {noti.length === 0 ? (
-                    <div className="p-3 text-gray-500 text-sm">Nessuna richiesta</div>
+                    <div className="p-3 text-gray-500 text-sm">Nessuna notifica</div>
                   ) : (
                     <ul className="max-h-80 overflow-y-auto divide-y">
                       {noti.map(n => (
                         <li key={n.id} className="flex items-center gap-2 p-3">
-                          {n.requester.image ? (
-                            <img src={n.requester.image} alt="avatar" className="h-8 w-8 rounded-full object-cover" />
-                          ) : (
-                            <div className="h-8 w-8 rounded-full bg-gray-200" />
+                          {n.type === 'follow-request' && n.fromUserId && (
+                            <>
+                              <span className="flex-1">{n.message}</span>
+                              <button onClick={()=>handleApprove(n.fromUserId)} className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200">Accetta</button>
+                              <button onClick={()=>handleDecline(n.fromUserId)} className="px-2 py-1 text-xs bg-red-100 text-red-600 rounded hover:bg-red-200">Rifiuta</button>
+                            </>
                           )}
-                          <span className="flex-1">{n.requester.name} <span className="text-gray-500">@{n.requester.username}</span></span>
-                          <button onClick={()=>handleApprove(n.requester.id)} className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200">Accetta</button>
-                          <button onClick={()=>handleDecline(n.requester.id)} className="px-2 py-1 text-xs bg-red-100 text-red-600 rounded hover:bg-red-200">Rifiuta</button>
+                          {n.type === 'like' && n.postId && (
+                            <Link href={`/main/${n.postId}`} className="flex-1 text-blue-700 hover:underline">{n.message}</Link>
+                          )}
+                          {n.type === 'comment' && n.postId && (
+                            <Link href={`/main/${n.postId}`} className="flex-1 text-blue-700 hover:underline">{n.message}</Link>
+                          )}
                         </li>
                       ))}
                     </ul>

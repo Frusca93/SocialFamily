@@ -1,6 +1,8 @@
+
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { sendNotification } from '../../notifications/index'
 
 export async function POST(_: Request, { params }: { params: { postId: string } }) {
   const session = await getServerSession(authOptions)
@@ -13,6 +15,22 @@ export async function POST(_: Request, { params }: { params: { postId: string } 
     await prisma.like.delete({ where: { id: existing.id } })
     return Response.json({ liked: false })
   }
-  await prisma.like.create({ data: { userId, postId } })
+  const like = await prisma.like.create({ data: { userId, postId } })
+  // Recupera il post e il suo autore
+  const post = await prisma.post.findUnique({ where: { id: postId }, include: { author: true } })
+  if (post && post.authorId !== userId) {
+    // Crea la notifica nel DB
+    const notification = await prisma.notification.create({
+      data: {
+        userId: post.authorId,
+        type: 'like',
+        postId,
+        fromUserId: userId,
+        message: `${(session.user as any).name || 'Qualcuno'} ha messo Mi piace al tuo post`,
+      }
+    })
+    // Invia la notifica in real-time
+    await sendNotification(post.authorId, notification)
+  }
   return Response.json({ liked: true })
 }

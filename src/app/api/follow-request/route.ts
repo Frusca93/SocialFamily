@@ -1,7 +1,9 @@
+
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { followRequestSchema } from '@/lib/validations';
+import { sendNotification } from '../notifications/index';
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
@@ -19,6 +21,18 @@ export async function POST(req: Request) {
       status: 'pending',
     }
   });
+  // Notifica al target user
+  if (targetUserId !== (session.user as any).id) {
+    const notification = await prisma.notification.create({
+      data: {
+        userId: targetUserId,
+        type: 'follow-request',
+        fromUserId: (session.user as any).id,
+        message: `${(session.user as any).name || 'Qualcuno'} ti ha inviato una richiesta di follow`,
+      }
+    })
+    await sendNotification(targetUserId, notification)
+  }
   return Response.json(followRequest);
 }
 
