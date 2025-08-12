@@ -1,5 +1,6 @@
 'use client'
 import { useState, useContext } from 'react'
+import LikesModal from './LikesModal'
 import { LanguageContext } from '@/app/LanguageContext'
 import dynamic from 'next/dynamic'
 import { useSession } from 'next-auth/react'
@@ -58,6 +59,7 @@ export default function PostCard({ post }: { post: any }) {
   }
 
   const [liked, setLiked] = useState(post.liked ?? false);
+  const [showLikes, setShowLikes] = useState(false);
   async function toggleLike() {
     const res = await fetch(`/api/posts/${post.id}/like`, { method: 'POST' })
     if (!res.ok) return
@@ -145,9 +147,16 @@ export default function PostCard({ post }: { post: any }) {
               d="M16.5 3.75c-1.74 0-3.41 1.01-4.5 2.62C10.91 4.76 9.24 3.75 7.5 3.75 4.42 3.75 2 6.16 2 9.21c0 3.4 3.4 6.13 8.55 10.29a1.5 1.5 0 0 0 1.9 0C18.6 15.34 22 12.61 22 9.21c0-3.05-2.42-5.46-5.5-5.46z"
             />
           </svg>
-          <span className="ml-1">{likes}</span>
+        </button>
+        <button
+          onClick={() => setShowLikes(true)}
+          className="ml-1 px-2 py-0.5 rounded-full border text-xs font-semibold text-gray-700 bg-white hover:bg-gray-100 transition"
+          aria-label="Vedi chi ha messo Mi Piace"
+        >
+          {likes}
         </button>
         <button onClick={() => setShowComments(true)} className="rounded-xl border px-3 py-1">{t.comments}: {comments}</button>
+        {showLikes && <LikesModal postId={post.id} onClose={() => setShowLikes(false)} />}
       </footer>
       <form onSubmit={addComment} className="mt-2 flex gap-2">
         <input value={comment} onChange={e=>setComment(e.target.value)} placeholder={t.writeComment} className="flex-1 rounded-xl border px-3 py-2" />
