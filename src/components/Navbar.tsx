@@ -50,6 +50,7 @@ const translations = {
 }
 
 type UserWithUsername = {
+  id?: string;
   name?: string;
   email?: string;
   image?: string;
