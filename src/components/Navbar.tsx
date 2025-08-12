@@ -58,8 +58,11 @@ type UserWithUsername = {
   username?: string;
 };
 
-import FeedClient from '@/app/(main)/FeedClient';
-export default function Navbar() {
+type NavbarProps = {
+  onScrollToPost?: (postId: string) => void;
+};
+
+export default function Navbar({ onScrollToPost }: NavbarProps) {
   const [q, setQ] = useState('')
   const [results, setResults] = useState<any | null>(null)
   const { data: session } = useSession()
@@ -191,7 +194,9 @@ export default function Navbar() {
                               className="flex-1 text-blue-700 hover:underline text-left"
                               onClick={() => {
                                 setShowNoti(false);
-                                setTimeout(() => feedRef.current?.scrollToPost(n.postId), 100);
+                                if (onScrollToPost) {
+                                  setTimeout(() => onScrollToPost(n.postId), 100);
+                                }
                               }}
                             >{n.message}</button>
                           )}
@@ -200,7 +205,9 @@ export default function Navbar() {
                               className="flex-1 text-blue-700 hover:underline text-left"
                               onClick={() => {
                                 setShowNoti(false);
-                                setTimeout(() => feedRef.current?.scrollToPost(n.postId), 100);
+                                if (onScrollToPost) {
+                                  setTimeout(() => onScrollToPost(n.postId), 100);
+                                }
                               }}
                             >{n.message}</button>
                           )}
@@ -285,10 +292,26 @@ export default function Navbar() {
                             <>
                               {/* Per like/comment: solo messaggio/link */}
                               {n.type === 'like' && n.postId && (
-                                <Link href={`/main/${n.postId}`} className="flex-1 text-blue-700 hover:underline">{n.message}</Link>
+                                <button
+                                  className="flex-1 text-blue-700 hover:underline text-left"
+                                  onClick={() => {
+                                    setShowNoti(false);
+                                    if (onScrollToPost) {
+                                      setTimeout(() => onScrollToPost(n.postId), 100);
+                                    }
+                                  }}
+                                >{n.message}</button>
                               )}
                               {n.type === 'comment' && n.postId && (
-                                <Link href={`/main/${n.postId}`} className="flex-1 text-blue-700 hover:underline">{n.message}</Link>
+                                <button
+                                  className="flex-1 text-blue-700 hover:underline text-left"
+                                  onClick={() => {
+                                    setShowNoti(false);
+                                    if (onScrollToPost) {
+                                      setTimeout(() => onScrollToPost(n.postId), 100);
+                                    }
+                                  }}
+                                >{n.message}</button>
                               )}
                               {/* fallback: solo testo se manca postId */}
                               {(!n.type || (!n.postId && n.type !== 'follow-request')) && (

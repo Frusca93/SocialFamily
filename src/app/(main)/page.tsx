@@ -1,26 +1,32 @@
 
+
 import NewPost from '@/components/NewPost'
 import PostCard from '@/components/PostCard'
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
+import { useRef } from 'react'
+import dynamic from 'next/dynamic'
+import Navbar from '@/components/Navbar'
+import { Suspense } from 'react'
+const FeedClient = dynamic(() => import('./FeedClient'), { ssr: false })
 
-import FeedClient from './FeedClient'
 
-export default async function FeedPage() {
+// Wrapper client component to handle refs and pass scrollToPost to Navbar
+import React from 'react';
+
+async function getFeedData() {
   const session = await getServerSession(authOptions)
   if (!session?.user) {
-    redirect('/login') 
+    redirect('/login')
   }
   const userId = (session.user as any).id;
-  // Trova gli ID degli utenti seguiti
   const following = await prisma.follow.findMany({
     where: { followerId: userId },
     select: { followingId: true }
   });
   const followingIds = following.map(f => f.followingId);
-  // Mostra solo i post dell'utente loggato o di chi segue
   const posts = await prisma.post.findMany({
     where: {
       OR: [
@@ -35,10 +41,32 @@ export default async function FeedPage() {
       likes: { where: { userId } },
     },
   });
-  // Aggiungi proprietà liked per ogni post
   const postsWithLiked = posts.map(p => ({
     ...p,
     liked: p.likes && p.likes.length > 0,
   }));
-  return <FeedClient posts={postsWithLiked} />
+  return postsWithLiked;
+}
+
+export default async function FeedPage() {
+  const postsWithLiked = await getFeedData();
+  // Render a client wrapper to handle refs
+  return <FeedPageClient posts={postsWithLiked} />;
+}
+
+// Client component
+function FeedPageClient({ posts }: { posts: any[] }) {
+  const feedRef = useRef<any>(null);
+  // Funzione di scroll da passare a Navbar
+  const handleScrollToPost = (postId: string) => {
+    if (feedRef.current && typeof feedRef.current.scrollToPost === 'function') {
+      feedRef.current.scrollToPost(postId);
+    }
+  };
+  return (
+    <>
+      <Navbar onScrollToPost={handleScrollToPost} />
+      <FeedClient ref={feedRef} posts={posts} />
+    </>
+  );
 }
