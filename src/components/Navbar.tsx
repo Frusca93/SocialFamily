@@ -59,7 +59,6 @@ type UserWithUsername = {
   username?: string;
 };
 
-type NavbarProps = {
 export default function Navbar() {
   const [q, setQ] = useState('')
   const [results, setResults] = useState<any | null>(null)
