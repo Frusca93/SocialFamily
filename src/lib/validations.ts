@@ -1,3 +1,6 @@
+export const followRequestSchema = z.object({
+  targetUserId: z.string().min(1)
+});
 import { z } from 'zod'
 
 export const registerSchema = z.object({
