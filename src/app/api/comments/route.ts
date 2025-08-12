@@ -32,15 +32,3 @@ export async function POST(req: Request) {
   const comment = await prisma.comment.create({ data: { postId, content, authorId: (session.user as any).id } })
   return Response.json(comment)
 }
-
-export async function uploadImage(req: Request) {
-  const { fileBase64 } = await req.json()
-
-  // Upload su Cloudinary
-  const uploadRes = await cloudinary.uploader.upload(fileBase64, {
-    folder: 'post-images',
-  })
-
-  // Salva uploadRes.secure_url nel database come mediaUrl
-  return Response.json({ url: uploadRes.secure_url })
-}
