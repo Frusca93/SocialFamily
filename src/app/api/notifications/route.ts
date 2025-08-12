@@ -15,10 +15,11 @@ export async function GET() {
   const followNotifications = requests.map(r => ({
     id: r.id,
     type: 'follow-request',
-    fromUserId: r.requesterId,
     message: `${r.requester.name || 'Qualcuno'} ti ha inviato una richiesta di follow`,
+    createdAt: r.createdAt,
+    fromUserId: r.requesterId,
     requester: r.requester,
-    createdAt: r.createdAt
+    postId: null // per compatibilità
   }));
 
   // Notifiche: like e comment dal modello Notification
@@ -26,12 +27,23 @@ export async function GET() {
     where: { userId },
     orderBy: { createdAt: 'desc' },
     take: 50,
+    include: { fromUser: { select: { id: true, name: true, username: true, image: true } } }
   });
 
   // Unifica e ordina tutte le notifiche
+  // Uniforma anche le notifiche like/comment per compatibilità
+  const normalizedOther = otherNotifications.map(n => ({
+    id: n.id,
+    type: n.type,
+    message: n.message,
+    createdAt: n.createdAt,
+    fromUserId: n.fromUserId,
+    postId: n.postId || null,
+    requester: n.fromUser || null
+  }));
   const allNotifications = [
     ...followNotifications,
-    ...otherNotifications
+    ...normalizedOther
   ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   return Response.json(allNotifications);
