@@ -108,7 +108,7 @@ export default function Navbar() {
         setErrorReq(data.error || 'Errore');
         return;
       }
-      setNoti(noti.filter(n => n.fromUserId !== requesterId));
+  setNoti(noti.filter(n => !(n.type === 'follow-request' && n.fromUserId === requesterId)));
     } catch (e) {
       setErrorReq('Errore di rete');
     } finally {
@@ -125,7 +125,7 @@ export default function Navbar() {
         setErrorReq(data.error || 'Errore');
         return;
       }
-      setNoti(noti.filter(n => n.fromUserId !== requesterId));
+  setNoti(noti.filter(n => !(n.type === 'follow-request' && n.fromUserId === requesterId)));
     } catch (e) {
       setErrorReq('Errore di rete');
     } finally {
