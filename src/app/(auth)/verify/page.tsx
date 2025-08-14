@@ -1,8 +1,10 @@
-'use client'
-import { useEffect } from 'react'
+import { Suspense, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 
-export default function VerifyInfoPage() {
+export const dynamic = 'force-dynamic'
+
+function VerifyClient() {
+  'use client'
   const sp = useSearchParams()
   const token = sp?.get('token') || ''
 
@@ -22,5 +24,13 @@ export default function VerifyInfoPage() {
         <p>Controlla la tua casella email e clicca sul link per confermare. Dopo la conferma verrai portato alla login.</p>
       )}
     </div>
+  )
+}
+
+export default function VerifyInfoPage() {
+  return (
+    <Suspense fallback={<div className="mx-auto max-w-md px-4 py-16">Caricamento…</div>}>
+      <VerifyClient />
+    </Suspense>
   )
 }

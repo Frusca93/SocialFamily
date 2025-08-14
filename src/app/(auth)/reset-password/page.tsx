@@ -1,8 +1,10 @@
-'use client'
+import { Suspense, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { useState } from 'react'
 
-export default function ResetPasswordPage() {
+export const dynamic = 'force-dynamic'
+
+function ResetPasswordClient() {
+  'use client'
   const sp = useSearchParams()
   const router = useRouter()
   const token = sp?.get('token') || ''
@@ -33,5 +35,13 @@ export default function ResetPasswordPage() {
         <button disabled={loading} className="w-full rounded-xl bg-blue-600 p-3 font-semibold text-white disabled:opacity-50">{loading ? '...' : 'Reset password'}</button>
       </form>
     </div>
+  )
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<div className="mx-auto max-w-md px-4 py-16">Caricamento…</div>}>
+      <ResetPasswordClient />
+    </Suspense>
   )
 }
