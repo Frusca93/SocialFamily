@@ -76,7 +76,8 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
   // const feedRef = useDomRef<any>(null);
   const [noti, setNoti] = useState<any[]>([])
   const [showNoti, setShowNoti] = useState(false)
-  const notiRef = useRef<HTMLDivElement>(null)
+  const notiRefMobile = useRef<HTMLDivElement>(null)
+  const notiRefDesktop = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (!user?.id) return;
     fetch('/api/notifications').then(r=>r.json()).then(setNoti)
@@ -84,13 +85,15 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
 
   // Burger menu mobile
   const [showMenu, setShowMenu] = useState(false)
-  // Chiudi dropdown se clic fuori
+  // Chiudi dropdown se clic fuori (robusto su mobile): usa pointerdown + composedPath
   useEffect(() => {
-    function handle(e: MouseEvent) {
-      if (notiRef.current && !notiRef.current.contains(e.target as Node)) setShowNoti(false)
-    }
-    if (showNoti) document.addEventListener('mousedown', handle)
-    return () => document.removeEventListener('mousedown', handle)
+    const handle = (e: PointerEvent) => {
+      const path = (e.composedPath && e.composedPath()) || [];
+      const isInside = path.includes(notiRefMobile.current as any) || path.includes(notiRefDesktop.current as any);
+      if (!isInside) setShowNoti(false);
+    };
+    if (showNoti) document.addEventListener('pointerdown', handle);
+    return () => document.removeEventListener('pointerdown', handle);
   }, [showNoti])
 
   const [loadingReq, setLoadingReq] = useState<string | null>(null);
@@ -165,7 +168,7 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
         <div className="flex items-center gap-2 sm:hidden">
           {/* Notifiche sempre visibili */}
           {user?.username && (
-            <div className="relative" ref={notiRef}>
+            <div className="relative" ref={notiRefMobile}>
               <button onClick={()=>setShowNoti(v=>!v)} className="relative rounded-full p-2 hover:bg-gray-200" title="Notifiche">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 1-4.488 0A8.967 8.967 0 0 1 3 9.75C3 5.798 6.272 2.25 12 2.25s9 3.548 9 7.5a8.967 8.967 0 0 1-7.143 7.332z" />
@@ -199,12 +202,20 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                                 <span className="flex-1">{n.message}</span>
                               )}
                               <button
-                                onClick={()=>handleApprove(n.fromUserId)}
+                                onClick={async (e)=>{
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  await handleApprove(n.fromUserId);
+                                }}
                                 className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 disabled:opacity-60"
                                 disabled={loadingReq === n.fromUserId}
                               >{loadingReq === n.fromUserId ? '...' : 'Accetta'}</button>
                               <button
-                                onClick={()=>handleDecline(n.fromUserId)}
+                                onClick={async (e)=>{
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  await handleDecline(n.fromUserId);
+                                }}
                                 className="px-2 py-1 text-xs bg-red-100 text-red-600 rounded hover:bg-red-200 disabled:opacity-60"
                                 disabled={loadingReq === n.fromUserId}
                               >{loadingReq === n.fromUserId ? '...' : 'Rifiuta'}</button>
@@ -216,7 +227,9 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                           {n.type === 'like' && n.postId && (
                             <button
                               className="flex-1 text-blue-700 hover:underline text-left"
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
                                 setShowNoti(false);
                                 if (onScrollToPost) {
                                   setTimeout(() => onScrollToPost(n.postId), 100);
@@ -231,7 +244,9 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                           {n.type === 'comment' && n.postId && (
                             <button
                               className="flex-1 text-blue-700 hover:underline text-left"
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
                                 setShowNoti(false);
                                 if (onScrollToPost) {
                                   setTimeout(() => onScrollToPost(n.postId), 100);
@@ -290,7 +305,7 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
         </form>
         <div className="hidden sm:flex items-center gap-2 ml-auto">
           {user?.username && (
-            <div className="relative" ref={notiRef}>
+            <div className="relative" ref={notiRefDesktop}>
               <button onClick={()=>setShowNoti(v=>!v)} className="relative rounded-full p-2 hover:bg-gray-200" title="Notifiche">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 1-4.488 0A8.967 8.967 0 0 1 3 9.75C3 5.798 6.272 2.25 12 2.25s9 3.548 9 7.5a8.967 8.967 0 0 1-7.143 7.332z" />
@@ -317,8 +332,8 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                                 <div className="h-8 w-8 rounded-full bg-gray-200" />
                               )}
                               <span className="flex-1">{n.requester.name} <span className="text-gray-500">@{n.requester.username}</span></span>
-                              <button onClick={()=>handleApprove(n.requester.id)} className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200">Accetta</button>
-                              <button onClick={()=>handleDecline(n.requester.id)} className="px-2 py-1 text-xs bg-red-100 text-red-600 rounded hover:bg-red-200">Rifiuta</button>
+                              <button onClick={async (e)=>{ e.preventDefault(); e.stopPropagation(); await handleApprove(n.requester.id) }} className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200">Accetta</button>
+                              <button onClick={async (e)=>{ e.preventDefault(); e.stopPropagation(); await handleDecline(n.requester.id) }} className="px-2 py-1 text-xs bg-red-100 text-red-600 rounded hover:bg-red-200">Rifiuta</button>
                             </>
                           ) : (
                             <>
@@ -326,7 +341,9 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                               {n.type === 'like' && n.postId && (
                                 <button
                                   className="flex-1 text-blue-700 hover:underline text-left"
-                                  onClick={() => {
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
                                     setShowNoti(false);
                                     if (onScrollToPost) {
                                       setTimeout(() => onScrollToPost(n.postId), 100);
@@ -341,7 +358,9 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                               {n.type === 'comment' && n.postId && (
                                 <button
                                   className="flex-1 text-blue-700 hover:underline text-left"
-                                  onClick={() => {
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
                                     setShowNoti(false);
                                     if (onScrollToPost) {
                                       setTimeout(() => onScrollToPost(n.postId), 100);
