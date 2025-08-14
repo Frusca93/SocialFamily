@@ -124,7 +124,7 @@ export default function CommentsModal({ postId, onClose }: { postId: string, onC
                         if (res.ok) {
                           setReplyFor(null); setReplyText('')
                           // refresh
-                          const r = await fetch(`/api/comments?postId=${postId}`)
+                          const r = await fetch(`/api/comments?postId=${encodeURIComponent(postId)}` , { cache: 'no-store' })
                           if (r.ok) setComments(await r.json())
                         }
                       }}
@@ -157,7 +157,7 @@ export default function CommentsModal({ postId, onClose }: { postId: string, onC
                             })
                             if (res.ok) {
                               setReplyFor(null); setReplyText('')
-                              const r = await fetch(`/api/comments?postId=${postId}`)
+                              const r = await fetch(`/api/comments?postId=${encodeURIComponent(postId)}` , { cache: 'no-store' })
                               if (r.ok) setComments(await r.json())
                             }
                           }}
