@@ -1,6 +1,7 @@
 "use client";
 import NewPost from '@/components/NewPost';
 import PostCard from '@/components/PostCard';
+import dynamic from 'next/dynamic';
 import { LanguageContext } from '@/app/LanguageContext';
 import { useContext, useEffect, useState, useImperativeHandle, forwardRef, useRef } from 'react';
 
@@ -15,6 +16,8 @@ const FeedClient = forwardRef(function FeedClient({ posts }: { posts: any[] }, r
   const { lang } = useContext(LanguageContext);
   const t = translations[lang as keyof typeof translations] || translations.it;
   const [feedPosts, setFeedPosts] = useState(posts);
+  const [openCommentsFor, setOpenCommentsFor] = useState<string | null>(null);
+  const CommentsModal = dynamic(() => import('@/components/CommentsModal'), { ssr: false });
   const scrollYRef = useRef(0);
   // ...nessuna logica socket...
 
@@ -47,7 +50,7 @@ const FeedClient = forwardRef(function FeedClient({ posts }: { posts: any[] }, r
         const fresh = await res.json();
         // Preserve liked flag if present locally
         const mapLiked = new Map(feedPosts.map(p => [p.id, p.liked]));
-        const merged = fresh.map((p: any) => ({ ...p, liked: mapLiked.get(p.id) ?? p.liked }));
+  const merged = fresh.map((p: any) => ({ ...p, liked: mapLiked.get(p.id) ?? p.liked }));
         setFeedPosts(merged);
         // Restore scroll position on next frame
         requestAnimationFrame(() => window.scrollTo({ top: scrollYRef.current }));
@@ -63,9 +66,14 @@ const FeedClient = forwardRef(function FeedClient({ posts }: { posts: any[] }, r
         {feedPosts.length === 0 ? (
           <div className="text-center text-gray-500">{t.noPosts}</div>
         ) : (
-          feedPosts.map(p => <PostCard key={p.id} post={p as any} />)
+          feedPosts.map(p => (
+            <PostCard key={p.id} post={p as any} onOpenComments={(postId) => setOpenCommentsFor(postId)} />
+          ))
         )}
       </div>
+      {openCommentsFor && (
+        <CommentsModal postId={openCommentsFor} onClose={() => setOpenCommentsFor(null)} />
+      )}
     </div>
   );
 });

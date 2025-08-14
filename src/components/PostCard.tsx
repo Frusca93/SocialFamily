@@ -5,6 +5,8 @@ import { LanguageContext } from '@/app/LanguageContext'
 import dynamic from 'next/dynamic'
 import { useSession } from 'next-auth/react'
 import DeleteConfirmModal from './DeleteConfirmModal'
+// Hoist dynamic import so component identity stays stable across re-renders
+const CommentsModal = dynamic(() => import('./CommentsModal'), { ssr: false })
 
 const translations = {
   it: {
@@ -37,7 +39,7 @@ const translations = {
   },
 }
 
-export default function PostCard({ post }: { post: any }) {
+export default function PostCard({ post, onOpenComments }: { post: any, onOpenComments?: (postId: string) => void }) {
   const [likes, setLikes] = useState(post._count?.likes ?? 0)
   const [comments, setComments] = useState(post._count?.comments ?? 0)
   const [comment, setComment] = useState('')
@@ -48,8 +50,7 @@ export default function PostCard({ post }: { post: any }) {
 
   const { lang } = useContext(LanguageContext)
   const t = translations[lang as keyof typeof translations] || translations.it
-  // Lazy load CommentsModal to avoid SSR issues
-  const CommentsModal = dynamic(() => import('./CommentsModal'), { ssr: false })
+  // ...
 
   async function handleDelete() {
     const res = await fetch(`/api/posts/${post.id}`, { method: 'DELETE' })
@@ -155,7 +156,7 @@ export default function PostCard({ post }: { post: any }) {
         >
           {likes}
         </button>
-        <button onClick={() => setShowComments(true)} className="rounded-xl border px-3 py-1">{t.comments}: {comments}</button>
+  <button onClick={() => (onOpenComments ? onOpenComments(post.id) : setShowComments(true))} className="rounded-xl border px-3 py-1">{t.comments}: {comments}</button>
         {showLikes && <LikesModal postId={post.id} onClose={() => setShowLikes(false)} />}
       </footer>
       <form onSubmit={addComment} className="mt-2 flex gap-2">
@@ -163,7 +164,7 @@ export default function PostCard({ post }: { post: any }) {
         <button className="rounded-xl border px-3">{t.send}</button>
       </form>
 
-      {showComments && (
+      {!onOpenComments && showComments && (
         <CommentsModal postId={post.id} onClose={() => setShowComments(false)} />
       )}
     </article>
