@@ -1,12 +1,9 @@
 'use client'
-import { useState, useContext } from 'react'
+import { useState, useContext, useEffect, useMemo } from 'react'
 import LikesModal from './LikesModal'
 import { LanguageContext } from '@/app/LanguageContext'
-import dynamic from 'next/dynamic'
 import { useSession } from 'next-auth/react'
 import DeleteConfirmModal from './DeleteConfirmModal'
-// Hoist dynamic import so component identity stays stable across re-renders
-const CommentsModal = dynamic(() => import('./CommentsModal'), { ssr: false })
 
 const translations = {
   it: {
@@ -14,32 +11,52 @@ const translations = {
     like: 'Mi piace',
     comments: 'Commenti',
     writeComment: 'Scrivi un commento',
-    send: 'Invia',
+  send: 'Invia',
+  loading: 'Caricamento...',
+  noComments: 'Nessun commento',
+  anonymous: 'Anonimo',
+  reply: 'Rispondi',
+  writeReply: 'Scrivi una risposta',
   },
   en: {
     delete: 'Delete post',
     like: 'Like',
     comments: 'Comments',
     writeComment: 'Write a comment',
-    send: 'Send',
+  send: 'Send',
+  loading: 'Loading...',
+  noComments: 'No comments',
+  anonymous: 'Anonymous',
+  reply: 'Reply',
+  writeReply: 'Write a reply',
   },
   fr: {
     delete: 'Supprimer le post',
     like: 'J’aime',
     comments: 'Commentaires',
     writeComment: 'Écrire un commentaire',
-    send: 'Envoyer',
+  send: 'Envoyer',
+  loading: 'Chargement...',
+  noComments: 'Aucun commentaire',
+  anonymous: 'Anonyme',
+  reply: 'Répondre',
+  writeReply: 'Écrire une réponse',
   },
   es: {
     delete: 'Eliminar publicación',
     like: 'Me gusta',
     comments: 'Comentarios',
     writeComment: 'Escribe un comentario',
-    send: 'Enviar',
+  send: 'Enviar',
+  loading: 'Cargando...',
+  noComments: 'Sin comentarios',
+  anonymous: 'Anónimo',
+  reply: 'Responder',
+  writeReply: 'Escribe una respuesta',
   },
 }
 
-export default function PostCard({ post, onOpenComments }: { post: any, onOpenComments?: (postId: string) => void }) {
+export default function PostCard({ post }: { post: any }) {
   const [likes, setLikes] = useState(post._count?.likes ?? 0)
   const [comments, setComments] = useState(post._count?.comments ?? 0)
   const [comment, setComment] = useState('')
@@ -50,7 +67,6 @@ export default function PostCard({ post, onOpenComments }: { post: any, onOpenCo
 
   const { lang } = useContext(LanguageContext)
   const t = translations[lang as keyof typeof translations] || translations.it
-  // ...
 
   async function handleDelete() {
     const res = await fetch(`/api/posts/${post.id}`, { method: 'DELETE' })
@@ -156,7 +172,7 @@ export default function PostCard({ post, onOpenComments }: { post: any, onOpenCo
         >
           {likes}
         </button>
-  <button onClick={() => (onOpenComments ? onOpenComments(post.id) : setShowComments(true))} className="rounded-xl border px-3 py-1">{t.comments}: {comments}</button>
+  <button onClick={() => setShowComments(v => !v)} className="rounded-xl border px-3 py-1">{t.comments}: {comments}</button>
         {showLikes && <LikesModal postId={post.id} onClose={() => setShowLikes(false)} />}
       </footer>
       <form onSubmit={addComment} className="mt-2 flex gap-2">
@@ -164,8 +180,8 @@ export default function PostCard({ post, onOpenComments }: { post: any, onOpenCo
         <button className="rounded-xl border px-3">{t.send}</button>
       </form>
 
-      {!onOpenComments && showComments && (
-        <CommentsModal postId={post.id} onClose={() => setShowComments(false)} />
+      {showComments && (
+        <InlineComments postId={post.id} onReplyPosted={() => setComments(c => c + 1)} />
       )}
     </article>
   )
@@ -184,4 +200,116 @@ function getYouTubeEmbedUrl(url: string) {
   }
   // fallback: restituisce l'url originale
   return url
+}
+
+function InlineComments({ postId, onReplyPosted }: { postId: string; onReplyPosted: () => void }) {
+  const { lang } = useContext(LanguageContext)
+  const t = translations[lang as keyof typeof translations] || translations.it
+  const [items, setItems] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [replyFor, setReplyFor] = useState<string | null>(null)
+  const [replyText, setReplyText] = useState('')
+
+  useEffect(() => {
+    let timer: any
+    const load = async () => {
+      try {
+        setError(null)
+        const res = await fetch(`/api/comments?postId=${encodeURIComponent(postId)}`, { cache: 'no-store' })
+        if (!res.ok) {
+          setError(`Errore ${res.status}`)
+          setItems([])
+        } else {
+          const data = await res.json().catch(() => [])
+          setItems(Array.isArray(data) ? data : [])
+        }
+      } catch {
+        setError('Errore di rete')
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+    timer = setInterval(load, 3000)
+    return () => clearInterval(timer)
+  }, [postId])
+
+  const grouped = useMemo(() => {
+    const byParent: Record<string, any[]> = {}
+    for (const c of items) {
+      const key = (c as any).parentId || 'root'
+      if (!byParent[key]) byParent[key] = []
+      byParent[key].push(c)
+    }
+    return { roots: byParent['root'] || [], byParent }
+  }, [items])
+
+  async function sendReply(parentId: string) {
+    if (!replyText.trim()) return
+    const res = await fetch('/api/comments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ postId, content: replyText, parentCommentId: parentId })
+    })
+    if (res.ok) {
+      setReplyFor(null)
+      setReplyText('')
+      onReplyPosted()
+      // refresh list
+      try {
+        const r = await fetch(`/api/comments?postId=${encodeURIComponent(postId)}`, { cache: 'no-store' })
+        if (r.ok) setItems(await r.json())
+      } catch {}
+    }
+  }
+
+  return (
+    <div className="mt-3 rounded-xl border bg-gray-50 p-3">
+      {loading ? (
+        <div className="text-sm text-gray-500">{t.loading}</div>
+      ) : items.length === 0 ? (
+        <div className="text-sm text-gray-500">{error ? error : t.noComments}</div>
+      ) : (
+        <div className="space-y-3">
+          {grouped.roots.map((c: any) => (
+            <div key={c.id} className="border-b pb-2 last:border-b-0">
+              <div className="flex items-start gap-2">
+                <div className="flex-1">
+                  <div className="font-semibold text-sm">{c.author?.name || t.anonymous} <span className="text-[11px] text-gray-400">@{c.author?.username}</span></div>
+                  <div className="text-sm text-gray-700">{c.content}</div>
+                  <div className="text-xs text-gray-400">{c.createdAt ? new Date(c.createdAt).toLocaleString() : ''}</div>
+                </div>
+                <button className="text-xs text-blue-600 hover:underline" onClick={() => { setReplyFor(c.id); setReplyText('') }}>{t.reply}</button>
+              </div>
+              {replyFor === c.id && (
+                <form onSubmit={(e) => { e.preventDefault(); sendReply(c.id); }} className="mt-2 flex gap-2">
+                  <input value={replyText} onChange={e=>setReplyText(e.target.value)} placeholder={t.writeReply} className="flex-1 rounded-xl border px-3 py-1.5 text-sm" />
+                  <button className="rounded-xl border px-3 py-1.5 text-sm">{t.send}</button>
+                </form>
+              )}
+              {(grouped.byParent[c.id] || []).map((rc: any) => (
+                <div key={rc.id} className="mt-2 ml-4 pl-3 border-l space-y-1">
+                  <div className="flex items-start gap-2">
+                    <div className="flex-1">
+                      <div className="font-semibold text-sm">{rc.author?.name || t.anonymous} <span className="text-[10px] text-gray-400">@{rc.author?.username}</span></div>
+                      <div className="text-sm text-gray-700">{rc.content}</div>
+                      <div className="text-xs text-gray-400">{rc.createdAt ? new Date(rc.createdAt).toLocaleString() : ''}</div>
+                    </div>
+                    <button className="text-[11px] text-blue-600 hover:underline" onClick={() => { setReplyFor(rc.id); setReplyText('') }}>{t.reply}</button>
+                  </div>
+                  {replyFor === rc.id && (
+                    <form onSubmit={(e) => { e.preventDefault(); sendReply(rc.id); }} className="mt-2 flex gap-2">
+                      <input value={replyText} onChange={e=>setReplyText(e.target.value)} placeholder={t.writeReply} className="flex-1 rounded-xl border px-3 py-1.5 text-sm" />
+                      <button className="rounded-xl border px-3 py-1.5 text-sm">{t.send}</button>
+                    </form>
+                  )}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
 }

@@ -1,7 +1,6 @@
 "use client";
 import NewPost from '@/components/NewPost';
 import PostCard from '@/components/PostCard';
-import dynamic from 'next/dynamic';
 import { LanguageContext } from '@/app/LanguageContext';
 import { useContext, useEffect, useState, useImperativeHandle, forwardRef, useRef } from 'react';
 
@@ -16,8 +15,6 @@ const FeedClient = forwardRef(function FeedClient({ posts }: { posts: any[] }, r
   const { lang } = useContext(LanguageContext);
   const t = translations[lang as keyof typeof translations] || translations.it;
   const [feedPosts, setFeedPosts] = useState(posts);
-  const [openCommentsFor, setOpenCommentsFor] = useState<string | null>(null);
-  const CommentsModal = dynamic(() => import('@/components/CommentsModal'), { ssr: false });
   const scrollYRef = useRef(0);
   // ...nessuna logica socket...
 
@@ -67,13 +64,10 @@ const FeedClient = forwardRef(function FeedClient({ posts }: { posts: any[] }, r
           <div className="text-center text-gray-500">{t.noPosts}</div>
         ) : (
           feedPosts.map(p => (
-            <PostCard key={p.id} post={p as any} onOpenComments={(postId) => setOpenCommentsFor(postId)} />
+            <PostCard key={p.id} post={p as any} />
           ))
         )}
       </div>
-      {openCommentsFor && (
-        <CommentsModal postId={openCommentsFor} onClose={() => setOpenCommentsFor(null)} />
-      )}
     </div>
   );
 });
