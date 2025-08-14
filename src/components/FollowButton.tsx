@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 type FollowState = 'none' | 'pending' | 'approved' | 'declined';
 
@@ -8,10 +8,24 @@ export default function FollowButton({ targetUserId, initialFollowing = false, i
   const [requestStatus, setRequestStatus] = useState<FollowState>(initialRequestStatus || (initialFollowing ? 'approved' : 'none'))
   const [loading, setLoading] = useState(false)
 
+  // Normalizza stati incoerenti: se non stai seguendo ma risulta 'approved', resetta a 'none'
+  useEffect(() => {
+    if (!following && requestStatus === 'approved') {
+      setRequestStatus('none');
+    }
+    if (following && requestStatus !== 'approved') {
+      setRequestStatus('approved');
+    }
+  }, [following, requestStatus]);
+
 
   async function handleRequest(){
     setLoading(true)
-    const res = await fetch('/api/follow-request', { method: 'POST', body: JSON.stringify({ targetUserId }) })
+    const res = await fetch('/api/follow-request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ targetUserId })
+    })
     setLoading(false)
     if (res.ok) setRequestStatus('pending')
     else {
@@ -25,7 +39,7 @@ export default function FollowButton({ targetUserId, initialFollowing = false, i
     }
   }
 
-  if (following || requestStatus === 'approved') {
+  if (following) {
     return <button disabled className="rounded-xl border bg-white px-3 py-2 opacity-60">Segui già</button>
   }
   if (requestStatus === 'pending') {

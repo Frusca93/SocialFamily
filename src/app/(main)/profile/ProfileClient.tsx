@@ -47,12 +47,20 @@ export default function ProfileClient({ user, posts, followers, following, isOwn
   // Rimuovi follower (solo se owner)
   const handleRemoveFollower = async (id: string) => {
     // Chiama API per rimuovere follower
-    await fetch(`/api/follow/remove-follower`, { method: 'POST', body: JSON.stringify({ userId: user.id, followerId: id }) });
+    await fetch(`/api/follow/remove-follower`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: user.id, followerId: id })
+    });
     setFollowersState(followersState.filter((u: any) => u.id !== id));
   };
   // Rimuovi following (unfollow)
   const handleRemoveFollowing = async (id: string) => {
-    await fetch(`/api/follow`, { method: 'POST', body: JSON.stringify({ targetUserId: id }) });
+    await fetch(`/api/follow`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ targetUserId: id })
+    });
     setFollowingState(followingState.filter((u: any) => u.id !== id));
   };
 

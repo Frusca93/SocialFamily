@@ -11,5 +11,9 @@ export async function POST(req: Request) {
   console.log('remove-follower', { userId, followerId });
   const result = await prisma.follow.deleteMany({ where: { followerId, followingId: userId } });
   console.log('deleteMany result', result);
+  // Pulisci eventuali FollowRequest esistenti tra le parti (qualsiasi stato)
+  await prisma.followRequest.deleteMany({ where: { requesterId: followerId, targetId: userId } });
+  // Rimuovi eventuali notifiche di tipo follow-request verso il proprietario dal follower rimosso
+  await prisma.notification.deleteMany({ where: { userId, fromUserId: followerId, type: 'follow-request' as any } });
   return Response.json({ success: true, deleted: result.count });
 }
