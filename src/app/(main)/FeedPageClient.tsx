@@ -9,6 +9,7 @@ export default function FeedPageClient({ posts }: { posts: any[] }) {
   const feedRef = useRef<any>(null);
   const router = useRouter();
   const pathname = usePathname();
+  const safePathname = pathname ?? '/';
   const searchParams = useSearchParams();
   // Funzione di scroll da passare a Navbar e FeedClient
   const handleScrollToPost = (postId: string) => {
@@ -39,7 +40,7 @@ export default function FeedPageClient({ posts }: { posts: any[] }) {
           const params = new URLSearchParams(Array.from(searchParams?.entries?.() ?? []));
           params.delete('post');
           const qs = params.toString();
-          router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+          router.replace(qs ? `${safePathname}?${qs}` : safePathname, { scroll: false });
         } catch {}
       }, 1800);
       // se l'utente scorre manualmente, rimuovi subito
@@ -50,7 +51,7 @@ export default function FeedPageClient({ posts }: { posts: any[] }) {
             const params = new URLSearchParams(Array.from(searchParams?.entries?.() ?? []));
             params.delete('post');
             const qs = params.toString();
-            router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+            router.replace(qs ? `${safePathname}?${qs}` : safePathname, { scroll: false });
           } catch {}
           window.removeEventListener('scroll', onScroll);
           clearTimeout(cleanTimeout);
