@@ -2,7 +2,7 @@
 import NewPost from '@/components/NewPost';
 import PostCard from '@/components/PostCard';
 import { LanguageContext } from '@/app/LanguageContext';
-import { useContext, useEffect, useState, useImperativeHandle, forwardRef, useRef } from 'react';
+import { useContext, useEffect, useState, useImperativeHandle, forwardRef } from 'react';
 
 const translations = {
   it: { noPosts: 'Nessun post trovato' },
@@ -15,7 +15,6 @@ const FeedClient = forwardRef(function FeedClient({ posts }: { posts: any[] }, r
   const { lang } = useContext(LanguageContext);
   const t = translations[lang as keyof typeof translations] || translations.it;
   const [feedPosts, setFeedPosts] = useState(posts);
-  const scrollYRef = useRef(0);
   // ...nessuna logica socket...
 
   useImperativeHandle(ref, () => ({
@@ -38,10 +37,8 @@ const FeedClient = forwardRef(function FeedClient({ posts }: { posts: any[] }, r
 
   // Auto-refresh every 30s without losing scroll position
   useEffect(() => {
-    const load = async () => {
+  const load = async () => {
       try {
-        // Save scroll position
-        scrollYRef.current = window.scrollY;
         const res = await fetch('/api/posts', { cache: 'no-store' });
         if (!res.ok) return;
         const fresh = await res.json();
@@ -49,8 +46,6 @@ const FeedClient = forwardRef(function FeedClient({ posts }: { posts: any[] }, r
         const mapLiked = new Map(feedPosts.map(p => [p.id, p.liked]));
   const merged = fresh.map((p: any) => ({ ...p, liked: mapLiked.get(p.id) ?? p.liked }));
         setFeedPosts(merged);
-        // Restore scroll position on next frame
-        requestAnimationFrame(() => window.scrollTo({ top: scrollYRef.current }));
       } catch {}
     };
   const id = setInterval(load, 3000);
