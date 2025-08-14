@@ -15,12 +15,12 @@ export default function FeedPageClient({ posts }: { posts: any[] }) {
     }
   };
   // Auto-scroll when ?post=ID is present or changes
+  const postParam = searchParams?.get('post') ?? null;
   useEffect(() => {
-    const postId = searchParams.get('post');
-    if (postId) {
-      setTimeout(() => handleScrollToPost(postId), 150);
+    if (postParam) {
+      setTimeout(() => handleScrollToPost(postParam), 150);
     }
-  }, [searchParams]);
+  }, [postParam]);
   return (
     <>
       <FeedClient ref={feedRef} posts={posts} />
