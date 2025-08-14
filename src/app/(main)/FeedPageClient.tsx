@@ -1,12 +1,14 @@
 "use client";
 import { useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import { useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 const FeedClient = dynamic(() => import('./FeedClient'), { ssr: false });
 
 export default function FeedPageClient({ posts }: { posts: any[] }) {
   const feedRef = useRef<any>(null);
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   // Funzione di scroll da passare a Navbar e FeedClient
   const handleScrollToPost = (postId: string) => {
@@ -31,6 +33,31 @@ export default function FeedPageClient({ posts }: { posts: any[] }) {
         if (attempts < max) setTimeout(tick, 150);
       };
       setTimeout(tick, 100);
+      // rimuovi il param una volta completato lo scroll o dopo un piccolo delay
+      const cleanTimeout = setTimeout(() => {
+        try {
+          const params = new URLSearchParams(Array.from(searchParams?.entries?.() ?? []));
+          params.delete('post');
+          const qs = params.toString();
+          router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+        } catch {}
+      }, 1800);
+      // se l'utente scorre manualmente, rimuovi subito
+      const startY = window.scrollY;
+      const onScroll = () => {
+        if (Math.abs(window.scrollY - startY) > 10) {
+          try {
+            const params = new URLSearchParams(Array.from(searchParams?.entries?.() ?? []));
+            params.delete('post');
+            const qs = params.toString();
+            router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+          } catch {}
+          window.removeEventListener('scroll', onScroll);
+          clearTimeout(cleanTimeout);
+        }
+      };
+      window.addEventListener('scroll', onScroll, { once: false, passive: true });
+      return () => { window.removeEventListener('scroll', onScroll); clearTimeout(cleanTimeout); };
     }
   }, [postParam]);
 
