@@ -1,7 +1,9 @@
 
 'use client';
 import { useState, useRef, useContext } from 'react';
-  // Rimossa la logica del dropdown
+import { useSession } from 'next-auth/react';
+import Avatar from './Avatar';
+// Rimossa la logica del dropdown
 import { LanguageContext } from '@/app/LanguageContext';
 
 export default function NewPost() {
@@ -11,9 +13,12 @@ export default function NewPost() {
   const [file, setFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showMediaMenu, setShowMediaMenu] = useState(false);
+  const [posted, setPosted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const { lang } = useContext(LanguageContext);
+  const { data: session } = useSession();
 
   const translations = {
     it: {
@@ -22,9 +27,14 @@ export default function NewPost() {
       video: "Video",
       urlImage: "URL immagine (opzionale)",
       urlVideo: "URL video (opzionale)",
-      uploadImage: "Carica immagine da dispositivo",
-      uploadVideo: "Carica video da dispositivo",
-      publish: "Pubblica"
+  uploadImage: "Carica immagine da dispositivo",
+  uploadVideo: "Carica video da dispositivo",
+  addMedia: "Aggiungi media",
+  fromDevice: "Da dispositivo",
+  takePhoto: "Scatta foto",
+  publishingAs: (u: string) => `Stai pubblicando come ${u}`,
+  published: "Pubblicato!",
+  publish: "Pubblica"
     },
     en: {
       placeholder: "What's on your mind?",
@@ -34,6 +44,11 @@ export default function NewPost() {
       urlVideo: "Video URL (optional)",
       uploadImage: "Upload image from device",
       uploadVideo: "Upload video from device",
+  addMedia: "Add media",
+  fromDevice: "From device",
+  takePhoto: "Take photo",
+  publishingAs: (u: string) => `Posting as ${u}`,
+  published: "Posted!",
       publish: "Post"
     },
     fr: {
@@ -44,6 +59,11 @@ export default function NewPost() {
       urlVideo: "URL de la vidéo (optionnel)",
       uploadImage: "Télécharger une image",
       uploadVideo: "Télécharger une vidéo",
+  addMedia: "Ajouter un média",
+  fromDevice: "Depuis l'appareil",
+  takePhoto: "Prendre une photo",
+  publishingAs: (u: string) => `Publier en tant que ${u}`,
+  published: "Publié !",
       publish: "Publier"
     },
     es: {
@@ -54,6 +74,11 @@ export default function NewPost() {
       urlVideo: "URL de vídeo (opcional)",
       uploadImage: "Subir imagen desde el dispositivo",
       uploadVideo: "Subir vídeo desde el dispositivo",
+  addMedia: "Añadir medio",
+  fromDevice: "Desde el dispositivo",
+  takePhoto: "Tomar foto",
+  publishingAs: (u: string) => `Publicando como ${u}`,
+  published: "¡Publicado!",
       publish: "Publicar"
     }
   };
@@ -62,7 +87,7 @@ export default function NewPost() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    if (file) {
+  if (file) {
       // Leggi il file come base64
       const reader = new FileReader();
       reader.onloadend = async () => {
@@ -74,8 +99,9 @@ export default function NewPost() {
         });
         setLoading(false);
         if (res.ok) {
-          setContent(''); setMediaUrl(''); setFile(null); setFilePreview(null);
-          window.location.reload();
+      setContent(''); setMediaUrl(''); setFile(null); setFilePreview(null);
+      setPosted(true);
+      setTimeout(() => { window.location.reload(); }, 800);
         }
       };
       reader.readAsDataURL(file);
@@ -90,7 +116,8 @@ export default function NewPost() {
     setLoading(false);
     if (res.ok) {
       setContent(''); setMediaUrl('');
-      window.location.reload();
+      setPosted(true);
+      setTimeout(() => { window.location.reload(); }, 800);
     }
   }
 
@@ -107,81 +134,145 @@ export default function NewPost() {
   }
 
   return (
-    <form onSubmit={submit} className="rounded-2xl border bg-white p-4 flex flex-col gap-2">
-      <textarea value={content} onChange={e=>setContent(e.target.value)} placeholder={t.placeholder} className="w-full resize-none rounded-xl border p-3" />
-      <div className="flex gap-2 mt-2">
-        <button
-          type="button"
-          className={`rounded-xl border px-3 py-2 font-semibold ${mediaType==='image' ? 'bg-blue-600 text-white' : 'bg-white text-blue-600'}`}
-          onClick={() => { setMediaType('image'); setFile(null); setFilePreview(null); setMediaUrl('') }}
-        >
-          {t.image}
-        </button>
-        <button
-          type="button"
-          className={`rounded-xl border px-3 py-2 font-semibold ${mediaType==='video' ? 'bg-blue-600 text-white' : 'bg-white text-blue-600'}`}
-          onClick={() => { setMediaType('video'); setFile(null); setFilePreview(null); setMediaUrl('') }}
-        >
-          {t.video}
-        </button>
+    <form onSubmit={submit} className="rounded-2xl border bg-white p-3 sm:p-4 flex flex-col gap-3">
+      {posted && (
+        <div className="rounded-xl bg-green-50 text-green-700 text-sm px-3 py-2 border border-green-100">
+          {t.published}
+        </div>
+      )}
+
+      <div className="flex items-start gap-3">
+        <Avatar src={session?.user?.image as string | undefined} alt={session?.user?.name || 'avatar'} />
+        <div className="flex-1">
+          {session?.user?.name && (
+            <div className="text-xs text-gray-500 mb-1">{t.publishingAs(session.user.name)}</div>
+          )}
+          <textarea
+            value={content}
+            onChange={e=>setContent(e.target.value)}
+            placeholder={t.placeholder}
+            className="w-full resize-y min-h-24 rounded-2xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+          />
+        </div>
       </div>
-      <input
-        value={mediaUrl}
-        onChange={e => { setMediaUrl(e.target.value); setFile(null); setFilePreview(null) }}
-        placeholder={mediaType === 'image' ? t.urlImage : t.urlVideo}
-        className="rounded-xl border px-3 py-2 mt-2"
-      />
-      <div className="flex flex-col gap-2 mt-2">
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept={mediaType === 'image' ? 'image/*' : 'video/*'}
-          className="hidden"
-          onChange={handleFileChange}
-        />
-        {mediaType === 'image' && (
+
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center gap-2">
+          {/* Tabs icone per tipo media */}
+          <div className="inline-flex rounded-full border bg-gray-50 p-1">
+            <button
+              type="button"
+              aria-label={t.image}
+              className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-sm transition ${mediaType==='image' ? 'bg-white text-blue-700 shadow-sm border border-blue-200' : 'text-gray-600 hover:text-black'}`}
+              onClick={() => { setMediaType('image'); setFile(null); setFilePreview(null); setMediaUrl('') }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
+                <rect x="3" y="5" width="18" height="14" rx="2" />
+                <path d="M8 13l2-2 3 3 2-2 4 4" />
+                <circle cx="8" cy="9" r="1.5" />
+              </svg>
+              <span className="hidden sm:inline">{t.image}</span>
+            </button>
+            <button
+              type="button"
+              aria-label={t.video}
+              className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-sm transition ${mediaType==='video' ? 'bg-white text-blue-700 shadow-sm border border-blue-200' : 'text-gray-600 hover:text-black'}`}
+              onClick={() => { setMediaType('video'); setFile(null); setFilePreview(null); setMediaUrl('') }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
+                <rect x="3" y="5" width="18" height="14" rx="2" />
+                <path d="M10 9l5 3-5 3V9z" />
+              </svg>
+              <span className="hidden sm:inline">{t.video}</span>
+            </button>
+          </div>
+
+          {/* Add media split/menu */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setShowMediaMenu(v=>!v)}
+              className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+              {t.addMedia}
+            </button>
+            {showMediaMenu && (
+              <div className="absolute z-10 mt-1 w-40 rounded-xl border bg-white shadow">
+                <button
+                  type="button"
+                  className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
+                  onClick={() => { setShowMediaMenu(false); fileInputRef.current?.click(); }}
+                >
+                  {t.fromDevice}
+                </button>
+                {mediaType === 'image' && (
+                  <button
+                    type="button"
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
+                    onClick={() => { setShowMediaMenu(false); cameraInputRef.current?.click(); }}
+                  >
+                    {t.takePhoto}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="hidden sm:block ml-auto" />
+          <button
+            disabled={loading || !content}
+            className="ml-auto rounded-full bg-gradient-to-r from-blue-600 to-blue-700 px-5 py-2 text-sm font-semibold text-white shadow hover:from-blue-700 hover:to-blue-800 disabled:opacity-50"
+          >
+            {t.publish}
+          </button>
+        </div>
+
+        <div className="flex flex-col gap-2">
           <input
-            ref={cameraInputRef}
+            value={mediaUrl}
+            onChange={e => { setMediaUrl(e.target.value); setFile(null); setFilePreview(null) }}
+            placeholder={mediaType === 'image' ? t.urlImage : t.urlVideo}
+            className="rounded-xl border px-3 py-2 text-sm"
+          />
+
+          {/* Hidden file inputs */}
+          <input
+            ref={fileInputRef}
             type="file"
-            accept="image/*"
-            capture="environment"
+            accept={mediaType === 'image' ? 'image/*' : 'video/*'}
             className="hidden"
             onChange={handleFileChange}
           />
-        )}
-        <div className="flex gap-2">
-          <button
-            type="button"
-            className="rounded-xl border bg-blue-100 px-3 py-2 text-blue-700 w-fit"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            {mediaType === 'image' ? t.uploadImage : t.uploadVideo}
-          </button>
           {mediaType === 'image' && (
-            <button
-              type="button"
-              className="rounded-xl border bg-green-100 px-3 py-2 text-green-700 w-fit"
-              onClick={() => cameraInputRef.current?.click()}
-            >
-              Fai una foto
-            </button>
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={handleFileChange}
+            />
           )}
+
+          {filePreview && (
+            mediaType === 'image' ? (
+              <img src={filePreview} alt="preview" className="mt-1 max-h-60 rounded-xl border object-contain" />
+            ) : (
+              <video src={filePreview} controls className="mt-1 max-h-60 rounded-xl border object-contain" />
+            )
+          )}
+
+          {/* Mobile CTA */}
+          <button
+            disabled={loading || !content}
+            className="sm:hidden rounded-full bg-gradient-to-r from-blue-600 to-blue-700 px-5 py-2 text-sm font-semibold text-white shadow hover:from-blue-700 hover:to-blue-800 disabled:opacity-50"
+          >
+            {t.publish}
+          </button>
         </div>
-        {filePreview && (
-          mediaType === 'image' ? (
-            <img src={filePreview} alt="preview" className="mt-2 max-h-48 rounded-xl border object-contain" />
-          ) : (
-            <video src={filePreview} controls className="mt-2 max-h-48 rounded-xl border object-contain" />
-          )
-        )}
-      </div>
-      <div className="flex justify-start mt-4">
-        <button
-          disabled={loading || !content}
-          className="rounded-xl bg-blue-600 px-4 py-2 font-semibold text-white disabled:opacity-50"
-        >
-          {t.publish}
-        </button>
       </div>
     </form>
   );
