@@ -39,6 +39,7 @@ model User {
   bio           String?
   language      String?   // 'it' | 'fr' | 'en' | 'es'
   passwordHash  String?  // per credenziali
+  emailVerified DateTime?
   createdAt     DateTime @default(now())
 
   posts         Post[]
@@ -102,4 +103,15 @@ model Follow {
   createdAt    DateTime @default(now())
 
   @@unique([followerId, followingId])
+}
+
+// Token generico per verifica email e reset password
+model Token {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  type      String   // 'EMAIL_VERIFY' | 'PASSWORD_RESET'
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 }

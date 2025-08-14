@@ -1,0 +1,13 @@
+-- Add emailVerified to User
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "emailVerified" TIMESTAMP;
+
+-- Create Token table
+CREATE TABLE IF NOT EXISTS "Token" (
+  "id" TEXT PRIMARY KEY,
+  "token" TEXT NOT NULL UNIQUE,
+  "type" TEXT NOT NULL,
+  "userId" TEXT NOT NULL,
+  "expiresAt" TIMESTAMP NOT NULL,
+  "createdAt" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "Token_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE
+);

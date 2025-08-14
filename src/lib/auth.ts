@@ -20,6 +20,10 @@ export const authOptions: NextAuthOptions = {
         const { email, password } = parsed.data
         const user = await prisma.user.findUnique({ where: { email } })
         if (!user?.passwordHash) return null
+        if (!(user as any).emailVerified) {
+          // Block login until verified
+          throw new Error('EMAIL_NOT_VERIFIED')
+        }
         const ok = await compare(password, user.passwordHash)
         if (!ok) return null
         return { id: user.id, name: user.name, email: user.email, image: user.image, username: user.username }
