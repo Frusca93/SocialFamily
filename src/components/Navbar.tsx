@@ -168,6 +168,24 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
     setResults(await res.json())
   }
 
+  // Live search while typing with debounce; hide results when input is empty
+  useEffect(() => {
+    const term = q.trim()
+    if (!term) {
+      setResults(null)
+      return
+    }
+    const ctrl = new AbortController()
+    const handle = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(term)}` , { signal: ctrl.signal })
+        const json = await res.json().catch(() => null)
+        if (json) setResults(json)
+      } catch {}
+    }, 300)
+    return () => { ctrl.abort(); clearTimeout(handle) }
+  }, [q])
+
   return (
     <header className="sticky top-0 z-10 bg-gray-50/80 py-1.5 px-2 sm:px-4 backdrop-blur">
       <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full">
@@ -476,7 +494,7 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
           </svg>
         </button>
       </div>
-      {results && (
+  {q.trim().length > 0 && results && (
         <div className="mt-3 rounded-2xl border bg-white p-3">
           {Array.isArray(results.users) && Array.isArray(results.posts) ? (
             (results.users.length > 0 || results.posts.length > 0) ? (
