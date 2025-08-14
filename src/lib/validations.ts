@@ -24,5 +24,6 @@ export const postSchema = z.object({
 
 export const commentSchema = z.object({
   postId: z.string().cuid(),
-  content: z.string().min(1)
+  content: z.string().min(1),
+  parentCommentId: z.string().cuid().optional()
 })

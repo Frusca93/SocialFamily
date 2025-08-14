@@ -86,6 +86,10 @@ model Comment {
   authorId  String
   author    User     @relation(fields: [authorId], references: [id])
   image     String?
+  // Reply threading
+  parent     Comment?  @relation("CommentToParent", fields: [parentId], references: [id])
+  parentId   String?
+  replies    Comment[] @relation("CommentToParent")
   createdAt DateTime @default(now())
 }
 

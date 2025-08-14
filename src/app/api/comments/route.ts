@@ -18,7 +18,7 @@ export async function GET(req: Request) {
   const comments = await prisma.comment.findMany({
     where: { postId },
     orderBy: { createdAt: 'asc' },
-    include: { author: { select: { name: true, username: true } } }
+  include: { author: { select: { name: true, username: true } } }
   })
   return Response.json(comments)
 }
@@ -29,21 +29,39 @@ export async function POST(req: Request) {
   const body = await req.json()
   const parsed = commentSchema.safeParse(body)
   if (!parsed.success) return Response.json({ error: 'Dati non validi' }, { status: 400 })
-  const { postId, content } = parsed.data
-  const comment = await prisma.comment.create({ data: { postId, content, authorId: (session.user as any).id } })
-  // Recupera il post e il suo autore
-  const post = await prisma.post.findUnique({ where: { id: postId }, include: { author: true } })
-  if (post && post.authorId !== (session.user as any).id) {
-    const notification = await prisma.notification.create({
-      data: {
-        userId: post.authorId,
-        type: 'comment',
-        postId,
-        fromUserId: (session.user as any).id,
-        message: `${(session.user as any).name || 'Qualcuno'} ha commentato il tuo post`,
+  const { postId, content, parentCommentId } = parsed.data
+  const data: any = { postId, content, authorId: (session.user as any).id }
+  if (parentCommentId) data.parentId = parentCommentId
+  const comment = await prisma.comment.create({ data })
+  // Notifiche: se è una risposta, avvisa l'autore del commento originale; altrimenti avvisa l'autore del post
+  try {
+    if (parentCommentId) {
+      const parent = await prisma.comment.findUnique({ where: { id: parentCommentId } })
+      if (parent && parent.authorId !== (session.user as any).id) {
+        await prisma.notification.create({
+          data: {
+            userId: parent.authorId,
+            type: 'comment-reply',
+            postId,
+            fromUserId: (session.user as any).id,
+            message: `${(session.user as any).name || 'Qualcuno'} ha risposto al tuo commento`,
+          }
+        })
       }
-    })
-  // Notifiche realtime rimosse: ora non fa nulla
-  }
+    } else {
+      const post = await prisma.post.findUnique({ where: { id: postId }, include: { author: true } })
+      if (post && post.authorId !== (session.user as any).id) {
+        await prisma.notification.create({
+          data: {
+            userId: post.authorId,
+            type: 'comment',
+            postId,
+            fromUserId: (session.user as any).id,
+            message: `${(session.user as any).name || 'Qualcuno'} ha commentato il tuo post`,
+          }
+        })
+      }
+    }
+  } catch {}
   return Response.json(comment)
 }
