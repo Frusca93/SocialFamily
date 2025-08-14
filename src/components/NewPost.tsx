@@ -9,7 +9,6 @@ import { LanguageContext } from '@/app/LanguageContext';
 export default function NewPost() {
   const [content, setContent] = useState('');
   const [mediaType, setMediaType] = useState<'image' | 'video'>('image');
-  const [mediaUrl, setMediaUrl] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -99,7 +98,7 @@ export default function NewPost() {
         });
         setLoading(false);
         if (res.ok) {
-      setContent(''); setMediaUrl(''); setFile(null); setFilePreview(null);
+      setContent(''); setFile(null); setFilePreview(null);
       setPosted(true);
       setTimeout(() => { window.location.reload(); }, 800);
         }
@@ -107,15 +106,15 @@ export default function NewPost() {
       reader.readAsDataURL(file);
       return;
     }
-    // fallback: solo URL
+    // fallback: nessun file, solo testo
     const res = await fetch('/api/posts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content, mediaUrl, mediaType })
+      body: JSON.stringify({ content, mediaType })
     });
     setLoading(false);
     if (res.ok) {
-      setContent(''); setMediaUrl('');
+      setContent('');
       setPosted(true);
       setTimeout(() => { window.location.reload(); }, 800);
     }
@@ -126,7 +125,6 @@ export default function NewPost() {
     if (f) {
       setFile(f);
       setFilePreview(URL.createObjectURL(f));
-      setMediaUrl('');
     } else {
       setFile(null);
       setFilePreview(null);
@@ -164,7 +162,7 @@ export default function NewPost() {
               type="button"
               aria-label={t.image}
               className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-sm transition ${mediaType==='image' ? 'bg-white text-blue-700 shadow-sm border border-blue-200' : 'text-gray-600 hover:text-black'}`}
-              onClick={() => { setMediaType('image'); setFile(null); setFilePreview(null); setMediaUrl('') }}
+              onClick={() => { setMediaType('image'); setFile(null); setFilePreview(null); }}
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
                 <rect x="3" y="5" width="18" height="14" rx="2" />
@@ -177,7 +175,7 @@ export default function NewPost() {
               type="button"
               aria-label={t.video}
               className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-sm transition ${mediaType==='video' ? 'bg-white text-blue-700 shadow-sm border border-blue-200' : 'text-gray-600 hover:text-black'}`}
-              onClick={() => { setMediaType('video'); setFile(null); setFilePreview(null); setMediaUrl('') }}
+              onClick={() => { setMediaType('video'); setFile(null); setFilePreview(null); }}
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
                 <rect x="3" y="5" width="18" height="14" rx="2" />
@@ -230,13 +228,7 @@ export default function NewPost() {
           </button>
         </div>
 
-        <div className="flex flex-col gap-2">
-          <input
-            value={mediaUrl}
-            onChange={e => { setMediaUrl(e.target.value); setFile(null); setFilePreview(null) }}
-            placeholder={mediaType === 'image' ? t.urlImage : t.urlVideo}
-            className="rounded-xl border px-3 py-2 text-sm"
-          />
+  <div className="flex flex-col gap-2">
 
           {/* Hidden file inputs */}
           <input
@@ -264,14 +256,7 @@ export default function NewPost() {
               <video src={filePreview} controls className="mt-1 max-h-60 rounded-xl border object-contain" />
             )
           )}
-
-          {/* Mobile CTA */}
-          <button
-            disabled={loading || !content}
-            className="sm:hidden rounded-full bg-gradient-to-r from-blue-600 to-blue-700 px-5 py-2 text-sm font-semibold text-white shadow hover:from-blue-700 hover:to-blue-800 disabled:opacity-50"
-          >
-            {t.publish}
-          </button>
+          {/* rimosso duplicato del pulsante Pubblica su mobile */}
         </div>
       </div>
     </form>
