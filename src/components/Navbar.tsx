@@ -191,7 +191,15 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
               </button>
               {showNoti && (
                 <div className="absolute right-0 mt-2 w-72 sm:w-80 rounded-xl border bg-white shadow-lg z-50">
-                  <div className="p-3 font-semibold border-b">Richieste di follow</div>
+                  <div className="p-3 font-semibold border-b flex items-center justify-between">
+                    <span>Richieste di follow</span>
+                    {noti.length > 0 && (
+                      <button
+                        className="text-xs text-blue-600 hover:underline"
+                        onClick={(e)=>{ e.preventDefault(); e.stopPropagation(); const ids = noti.map(n=>n.id); setNoti([]); fetch('/api/notifications', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids }) }).catch(()=>{}) }}
+                      >Segna tutte come lette</button>
+                    )}
+                  </div>
                   {noti.length === 0 ? (
                     <div className="p-3 text-gray-500 text-sm">Nessuna notifica</div>
                   ) : (
@@ -237,7 +245,7 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                               )}
                             </>
                           )}
-          {n.type === 'like' && n.postId && (
+                          {n.type === 'like' && n.postId && (
                             <button
                               className="flex-1 text-blue-700 hover:underline text-left"
                               onClick={(e) => {
@@ -267,6 +275,18 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                                 setShowNoti(false);
                               }}
                             >{n.message}</button>
+                          )}
+                          {/* dismiss manuale per altri tipi */}
+                          {n.type !== 'follow-request' && (
+                            <button
+                              aria-label="Chiudi notifica"
+                              className="ml-2 p-1 rounded hover:bg-gray-100"
+                              onClick={(e)=>{ e.preventDefault(); e.stopPropagation(); dismissNotification(n.id) }}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
                           )}
                         </li>
                       ))}
@@ -327,7 +347,21 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
               </button>
               {showNoti && (
                 <div className="absolute right-0 mt-2 w-80 rounded-xl border bg-white shadow-lg z-50">
-                  <div className="p-3 font-semibold border-b">Richieste di follow</div>
+                  <div className="p-3 font-semibold border-b flex items-center justify-between">
+                    <span>Richieste di follow</span>
+                    {noti.length > 0 && (
+                      <button
+                        className="text-xs text-blue-600 hover:underline"
+                        onClick={(e)=>{
+                          e.preventDefault();
+                          e.stopPropagation();
+                          const ids = noti.map(n=>n.id);
+                          setNoti([]);
+                          fetch('/api/notifications', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids }) }).catch(()=>{})
+                        }}
+                      >Segna tutte come lette</button>
+                    )}
+                  </div>
                   {noti.length === 0 ? (
                     <div className="p-3 text-gray-500 text-sm">Nessuna richiesta</div>
                   ) : (
@@ -348,12 +382,13 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                           ) : (
                             <>
                               {/* Per like/comment: solo messaggio/link */}
-                              {n.type === 'like' && n.postId && (
+          {n.type === 'like' && n.postId && (
                                 <button
                                   className="flex-1 text-blue-700 hover:underline text-left"
                                   onClick={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
+            dismissNotification(n.id);
                                     router.push(`/?post=${n.postId}`);
                                     setTimeout(() => {
                                       window.dispatchEvent(new CustomEvent('scroll-to-post', { detail: { postId: n.postId } }));
@@ -379,6 +414,17 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                               {/* fallback: solo testo se manca postId */}
                               {(!n.type || (!n.postId && n.type !== 'follow-request')) && (
                                 <span className="flex-1">{n.message}</span>
+                              )}
+                              {n.type !== 'follow-request' && (
+                                <button
+                                  aria-label="Chiudi notifica"
+                                  className="ml-2 p-1 rounded hover:bg-gray-100"
+                                  onClick={(e)=>{ e.preventDefault(); e.stopPropagation(); dismissNotification(n.id) }}
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                </button>
                               )}
                             </>
                           )}
