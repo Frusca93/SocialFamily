@@ -52,6 +52,7 @@ model User {
   followRequestsReceived FollowRequest[] @relation("followRequestsReceived")
   notifications         Notification[] @relation("UserNotifications")
   notificationsFrom      Notification[] @relation("NotificationFromUser")
+  tokens                 Token[]
 }
 
 model Post {
