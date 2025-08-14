@@ -208,10 +208,12 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
           {user?.username && (
             <div className="relative" ref={notiRefMobile}>
               <button onClick={()=>setShowNoti(v=>!v)} className="relative rounded-full p-2 hover:bg-gray-200" title="Notifiche">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 1-4.488 0A8.967 8.967 0 0 1 3 9.75C3 5.798 6.272 2.25 12 2.25s9 3.548 9 7.5a8.967 8.967 0 0 1-7.143 7.332z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.5a3 3 0 0 1-6 0" />
-                </svg>
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 text-gray-700">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 1-4.488 0A8.967 8.967 0 0 1 3 9.75C3 5.798 6.272 2.25 12 2.25s9 3.548 9 7.5a8.967 8.967 0 0 1-7.143 7.332z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.5a3 3 0 0 1-6 0" />
+                  </svg>
+                </span>
                 {noti.length > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5">{noti.length}</span>
                 )}
@@ -382,10 +384,12 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
           {user?.username && (
             <div className="relative" ref={notiRefDesktop}>
       <button onClick={()=>setShowNoti(v=>!v)} className="relative rounded-full p-2 text-gray-700 hover:bg-gray-200" title="Notifiche">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 1-4.488 0A8.967 8.967 0 0 1 3 9.75C3 5.798 6.272 2.25 12 2.25s9 3.548 9 7.5a8.967 8.967 0 0 1-7.143 7.332z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.5a3 3 0 0 1-6 0" />
-                </svg>
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 1-4.488 0A8.967 8.967 0 0 1 3 9.75C3 5.798 6.272 2.25 12 2.25s9 3.548 9 7.5a8.967 8.967 0 0 1-7.143 7.332z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.5a3 3 0 0 1-6 0" />
+                  </svg>
+                </span>
                 {noti.length > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5">{noti.length}</span>
                 )}
