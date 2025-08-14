@@ -1,5 +1,6 @@
 'use client'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useRef as useDomRef } from 'react';
 import { useScrollToPost } from '@/app/(main)/ScrollToPostContext';
 import Logo from './Logo'
@@ -63,6 +64,7 @@ type NavbarProps = {
 };
 
 export default function Navbar({ onScrollToPost }: NavbarProps) {
+  const router = useRouter();
   const [q, setQ] = useState('')
   const [results, setResults] = useState<any | null>(null)
   const { data: session } = useSession()
@@ -208,7 +210,11 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                               className="flex-1 text-blue-700 hover:underline text-left"
                               onClick={() => {
                                 setShowNoti(false);
-                                if (onScrollToPost) setTimeout(() => onScrollToPost(n.postId), 100);
+                                if (onScrollToPost) {
+                                  setTimeout(() => onScrollToPost(n.postId), 100);
+                                } else {
+                                  router.push(`/?post=${n.postId}`);
+                                }
                               }}
                             >{n.message}</button>
                           )}
@@ -217,7 +223,11 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                               className="flex-1 text-blue-700 hover:underline text-left"
                               onClick={() => {
                                 setShowNoti(false);
-                                if (onScrollToPost) setTimeout(() => onScrollToPost(n.postId), 100);
+                                if (onScrollToPost) {
+                                  setTimeout(() => onScrollToPost(n.postId), 100);
+                                } else {
+                                  router.push(`/?post=${n.postId}`);
+                                }
                               }}
                             >{n.message}</button>
                           )}
@@ -306,7 +316,11 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                                   className="flex-1 text-blue-700 hover:underline text-left"
                                   onClick={() => {
                                     setShowNoti(false);
-                                    setTimeout(() => { if (onScrollToPost) onScrollToPost(n.postId); }, 100);
+                                    if (onScrollToPost) {
+                                      setTimeout(() => onScrollToPost(n.postId), 100);
+                                    } else {
+                                      router.push(`/?post=${n.postId}`);
+                                    }
                                   }}
                                 >{n.message}</button>
                               )}
@@ -315,7 +329,11 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                                   className="flex-1 text-blue-700 hover:underline text-left"
                                   onClick={() => {
                                     setShowNoti(false);
-                                    setTimeout(() => { if (onScrollToPost) onScrollToPost(n.postId); }, 100);
+                                    if (onScrollToPost) {
+                                      setTimeout(() => onScrollToPost(n.postId), 100);
+                                    } else {
+                                      router.push(`/?post=${n.postId}`);
+                                    }
                                   }}
                                 >{n.message}</button>
                               )}
