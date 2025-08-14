@@ -21,7 +21,7 @@ export async function POST(req: Request) {
   const token = randomBytes(32).toString('hex')
   const expires = new Date(Date.now() + 1000 * 60 * 60)
   await (prisma as any).token.create({ data: { token, type: 'EMAIL_VERIFY', userId: user.id, expiresAt: expires } })
-  const url = `${process.env.NEXT_PUBLIC_APP_URL || ''}/auth/verify?token=${token}`
+  const url = `${process.env.NEXT_PUBLIC_APP_URL || ''}/verify?token=${token}`
   await sendMail(user.email, 'Conferma la tua email', `Clicca per confermare: <a href="${url}">${url}</a>`)
   return Response.json({ ok: true })
   } catch (e) {
