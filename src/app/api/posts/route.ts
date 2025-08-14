@@ -20,8 +20,24 @@ cloudinary.config({
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const authorId = searchParams.get('authorId') || undefined;
+  let where: any = undefined;
+  if (authorId) {
+    where = { authorId };
+  } else {
+    // If no authorId, return feed of current user: self + following
+    const session = await getServerSession(authOptions).catch(() => null);
+    const userId = (session?.user as any)?.id as string | undefined;
+    if (userId) {
+      const following = await prisma.follow.findMany({
+        where: { followerId: userId },
+        select: { followingId: true },
+      });
+      const ids = [userId, ...following.map(f => f.followingId)];
+      where = { authorId: { in: ids } };
+    }
+  }
   const posts = await prisma.post.findMany({
-    where: authorId ? { authorId } : undefined,
+    where,
     orderBy: { createdAt: 'desc' },
     include: { author: true, _count: { select: { likes: true, comments: true } } }
   })

@@ -80,7 +80,7 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
   const notiRefDesktop = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (!user?.id) return;
-    fetch('/api/notifications').then(r=>r.json()).then(setNoti)
+  fetch('/api/notifications', { cache: 'no-store' }).then(r=>r.json()).then(setNoti)
   }, [user?.id])
 
   // Auto-refresh notifications every 3s
