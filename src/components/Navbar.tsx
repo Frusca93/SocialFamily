@@ -10,7 +10,7 @@ import { LanguageContext } from '@/app/LanguageContext'
 
 const translations = {
   it: {
-    search: 'Cerca persone o post',
+  search: 'Cerca persone',
     searchBtn: 'Cerca',
     profile: 'Profilo',
     logout: 'Logout',
@@ -20,7 +20,7 @@ const translations = {
     error: 'Errore nella ricerca',
   },
   en: {
-    search: 'Search people or posts',
+  search: 'Search people',
     searchBtn: 'Search',
     profile: 'Profile',
     logout: 'Logout',
@@ -30,7 +30,7 @@ const translations = {
     error: 'Search error',
   },
   fr: {
-    search: 'Rechercher des personnes ou des posts',
+  search: 'Rechercher des personnes',
     searchBtn: 'Rechercher',
     profile: 'Profil',
     logout: 'Déconnexion',
@@ -40,7 +40,7 @@ const translations = {
     error: 'Erreur de recherche',
   },
   es: {
-    search: 'Buscar personas o publicaciones',
+  search: 'Buscar personas',
     searchBtn: 'Buscar',
     profile: 'Perfil',
     logout: 'Cerrar sesión',
@@ -169,12 +169,12 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
   }
 
   return (
-    <header className="sticky top-0 z-10 bg-gray-50/80 py-2 px-2 sm:px-4 backdrop-blur">
-      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 w-full">
+    <header className="sticky top-0 z-10 bg-gray-50/80 py-1.5 px-2 sm:px-4 backdrop-blur">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full">
         <div className="flex items-center justify-between w-full sm:w-auto">
           <div className="flex items-center">
-            <Logo className="h-16 w-16" />
-            <span className="ml-3 text-2xl font-bold hidden sm:inline align-middle" style={{ color: '#1976d2' }}>SocialFamily</span>
+            <Logo className="h-12 w-12" />
+            <span className="ml-2 text-xl font-bold hidden sm:inline align-middle" style={{ color: '#1976d2' }}>SocialFamily</span>
           </div>
         <div className="flex items-center gap-2 sm:hidden">
           {/* Notifiche sempre visibili */}
@@ -329,14 +329,32 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
           )}
         </div>
         </div>
-        <form onSubmit={onSearch} className="flex flex-1 gap-2 w-full sm:w-auto">
-          <input value={q} onChange={e=>setQ(e.target.value)} placeholder={t.search} className="w-full rounded-xl border bg-white px-3 py-2 text-sm" />
-          <button className="rounded-xl border bg-white px-4 text-sm">{t.searchBtn}</button>
+        <form onSubmit={onSearch} className="flex flex-1 items-center w-full sm:w-auto">
+          <div className="relative flex-1">
+            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-400">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
+                <circle cx="11" cy="11" r="7" />
+                <path d="M20 20l-3.5-3.5" />
+              </svg>
+            </span>
+            <input
+              value={q}
+              onChange={e=>setQ(e.target.value)}
+              placeholder={t.search}
+              className="w-full rounded-xl border bg-white pl-10 pr-10 py-2 text-sm"
+            />
+            <button aria-label={t.searchBtn} className="absolute right-1 top-1/2 -translate-y-1/2 p-2 rounded-lg text-gray-600 hover:text-black">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
+                <circle cx="11" cy="11" r="7" />
+                <path d="M20 20l-3.5-3.5" />
+              </svg>
+            </button>
+          </div>
         </form>
-        <div className="hidden sm:flex items-center gap-2 ml-auto">
+    <div className="hidden sm:flex items-center gap-2 ml-auto">
           {user?.username && (
             <div className="relative" ref={notiRefDesktop}>
-              <button onClick={()=>setShowNoti(v=>!v)} className="relative rounded-full p-2 hover:bg-gray-200" title="Notifiche">
+      <button onClick={()=>setShowNoti(v=>!v)} className="relative rounded-full p-2 text-gray-700 hover:bg-gray-200" title="Notifiche">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 1-4.488 0A8.967 8.967 0 0 1 3 9.75C3 5.798 6.272 2.25 12 2.25s9 3.548 9 7.5a8.967 8.967 0 0 1-7.143 7.332z" />
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.5a3 3 0 0 1-6 0" />
@@ -437,20 +455,25 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
             </div>
           )}
           {user?.username && (
-            <Link href={`/profile/${user.username}`} className="rounded-xl border bg-white px-3 py-2">{t.profile}</Link>
+            <Link href={`/profile/${user.username}`} className="rounded-full p-2 border bg-white text-gray-700 hover:bg-gray-100" title={t.profile} aria-label={t.profile}>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-6 h-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0Z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 14a7 7 0 00-7 7h14a7 7 0 00-7-7Z" />
+              </svg>
+            </Link>
           )}
         </div>
         {/* Logout solo su desktop, su mobile è nel burger menu */}
         <button
           onClick={() => signOut({ callbackUrl: '/login' })}
-          className="hidden sm:flex rounded-xl border bg-white px-3 py-2 items-center gap-2 mt-2 sm:mt-0"
+          className="hidden sm:flex rounded-full border bg-white p-2 text-gray-700 hover:bg-gray-100 mt-2 sm:mt-0"
           title={t.logout}
+          aria-label={t.logout}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15" />
             <path strokeLinecap="round" strokeLinejoin="round" d="M18 12H9m0 0l3-3m-3 3l3 3" />
           </svg>
-          {t.logout}
         </button>
       </div>
       {results && (
