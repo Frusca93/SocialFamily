@@ -3,7 +3,7 @@ import FollowButton from '@/components/FollowButton';
 import PostCard from '@/components/PostCard';
 import FollowListModal from '@/components/FollowListModal';
 import { LanguageContext } from '@/app/LanguageContext';
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 
 const translations = {
   it: {
@@ -43,6 +43,31 @@ export default function ProfileClient({ user, posts, followers, following, isOwn
   const [showFollowing, setShowFollowing] = useState(false);
   const [followersState, setFollowersState] = useState(followersList);
   const [followingState, setFollowingState] = useState(followingList);
+  const [postsState, setPostsState] = useState(posts);
+  const scrollYRef = useRef(0);
+
+  // Auto-refresh every 30s: refresh posts and counts; preserve scroll
+  useEffect(() => {
+    const load = async () => {
+      try {
+        scrollYRef.current = window.scrollY;
+        // Re-fetch profile posts and lists
+        const base = `/api/profile`;
+        // We don’t have a dedicated API; fallback: reload just posts via server endpoint if available
+        // Minimal approach: refetch the current page data via a lightweight API we have: /api/posts filtered by author
+        if (user?.id) {
+          const res = await fetch(`/api/posts?authorId=${encodeURIComponent(user.id)}`, { cache: 'no-store' }).catch(() => null);
+          if (res && res.ok) {
+            const fresh = await res.json();
+            setPostsState(fresh);
+          }
+        }
+        requestAnimationFrame(() => window.scrollTo({ top: scrollYRef.current }));
+      } catch {}
+    };
+  const id = setInterval(load, 3000);
+    return () => clearInterval(id);
+  }, [user?.id]);
 
   // Rimuovi follower (solo se owner)
   const handleRemoveFollower = async (id: string) => {
@@ -94,7 +119,7 @@ export default function ProfileClient({ user, posts, followers, following, isOwn
       </div>
       <div className="space-y-4">
         {isOwner || isFollowing || followRequestStatus === 'approved' ? (
-          posts.map((p: any) => <PostCard key={p.id} post={p as any} />)
+          postsState.map((p: any) => <PostCard key={p.id} post={p as any} />)
         ) : (
           <div className="text-center text-gray-500">I post di questo profilo sono privati.</div>
         )}

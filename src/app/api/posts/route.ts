@@ -17,8 +17,11 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 })
 
-export async function GET() {
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const authorId = searchParams.get('authorId') || undefined;
   const posts = await prisma.post.findMany({
+    where: authorId ? { authorId } : undefined,
     orderBy: { createdAt: 'desc' },
     include: { author: true, _count: { select: { likes: true, comments: true } } }
   })

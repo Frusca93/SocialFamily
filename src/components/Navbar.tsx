@@ -83,6 +83,15 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
     fetch('/api/notifications').then(r=>r.json()).then(setNoti)
   }, [user?.id])
 
+  // Auto-refresh notifications every 3s
+  useEffect(() => {
+    if (!user?.id) return;
+    const id = setInterval(() => {
+      fetch('/api/notifications', { cache: 'no-store' }).then(r=>r.json()).then(setNoti).catch(()=>{})
+    }, 3000);
+    return () => clearInterval(id);
+  }, [user?.id])
+
   // Burger menu mobile
   const [showMenu, setShowMenu] = useState(false)
   // Chiudi dropdown se clic fuori (robusto su mobile): usa pointerdown + composedPath
