@@ -46,6 +46,7 @@ const translations = {
 export default function CommentsModal({ postId, onClose }: { postId: string, onClose: () => void }) {
   const [comments, setComments] = React.useState<any[]>([])
   const [loading, setLoading] = React.useState(true)
+  const [error, setError] = React.useState<string | null>(null)
   const [replyFor, setReplyFor] = React.useState<string | null>(null)
   const [replyText, setReplyText] = React.useState('')
   const modalRef = useRef<HTMLDivElement>(null)
@@ -55,9 +56,14 @@ export default function CommentsModal({ postId, onClose }: { postId: string, onC
   useEffect(() => {
     async function fetchComments() {
       setLoading(true)
-      const res = await fetch(`/api/comments?postId=${postId}`)
+      setError(null)
+      const res = await fetch(`/api/comments?postId=${encodeURIComponent(postId)}` , { cache: 'no-store' })
       if (res.ok) {
-        setComments(await res.json())
+        const data = await res.json().catch(() => [])
+        setComments(Array.isArray(data) ? data : [])
+      } else {
+        setError(`Errore ${res.status}`)
+        setComments([])
       }
       setLoading(false)
     }
@@ -84,7 +90,7 @@ export default function CommentsModal({ postId, onClose }: { postId: string, onC
           {loading ? (
             <div>{t.loading}</div>
           ) : comments.length === 0 ? (
-            <div className="text-gray-500">{t.noComments}</div>
+            <div className="text-gray-500">{error ? error : t.noComments}</div>
           ) : (
             // Render nested: group by parentId
             (() => {
