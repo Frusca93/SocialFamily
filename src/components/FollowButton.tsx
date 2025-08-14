@@ -26,15 +26,28 @@ export default function FollowButton({ targetUserId, initialFollowing = false, i
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ targetUserId })
     })
+    const data = await res.json().catch(()=>null)
     setLoading(false)
-    if (res.ok) setRequestStatus('pending')
-    else {
-      const data = await res.json().catch(()=>null)
-      if(data?.error?.includes('già inviata')) setRequestStatus('pending')
-      // Se il backend risponde che non segui più, resetta lo stato
-      if(data?.error?.toLowerCase().includes('not following') || data?.error?.toLowerCase().includes('non segui')) {
+    if (res.ok) {
+      setRequestStatus('pending')
+    } else {
+      if (data?.status === 'already-following') {
+        setFollowing(true)
+        setRequestStatus('approved')
+        return
+      }
+      if (data?.status === 'already-pending' || data?.status === 'pending') {
+        setRequestStatus('pending')
+        return
+      }
+      if (data?.error?.toLowerCase().includes('not following') || data?.error?.toLowerCase().includes('non segui')) {
         setFollowing(false);
         setRequestStatus('none');
+        return
+      }
+      // Fallback: imposta pending se il server ha aggiornato a pending
+      if (data?.status === 'updated-to-pending') {
+        setRequestStatus('pending')
       }
     }
   }
