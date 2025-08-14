@@ -48,3 +48,16 @@ export async function GET() {
 
   return Response.json(allNotifications);
 }
+
+export async function DELETE(req: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  const userId = (session.user as any).id as string;
+  const body = await req.json().catch(() => ({}));
+  const ids: string[] = Array.isArray(body?.ids)
+    ? body.ids
+    : (body?.id ? [body.id] : []);
+  if (!ids.length) return Response.json({ error: 'Nessun id fornito' }, { status: 400 });
+  const result = await prisma.notification.deleteMany({ where: { userId, id: { in: ids } } });
+  return Response.json({ success: true, deleted: result.count });
+}

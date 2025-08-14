@@ -103,6 +103,16 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
     const res = await fetch('/api/notifications');
     setNoti(await res.json());
   }
+  async function dismissNotification(id: string) {
+    // ottimista: rimuovi subito
+    setNoti(prev => prev.filter(n => n.id !== id));
+    // backend cleanup (best-effort)
+    fetch('/api/notifications', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id })
+    }).catch(() => {});
+  }
   async function handleApprove(requesterId: string) {
     setLoadingReq(requesterId);
     setErrorReq(null);
@@ -121,7 +131,8 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
         setErrorReq((data as any).error || 'Errore');
         return;
       }
-      await reloadNotifications();
+  // elimina la notifica di follow-request relativa
+  setTimeout(() => reloadNotifications(), 0);
     } catch (e) {
       setErrorReq('Errore di rete');
       console.error('[DEBUG] handleApprove exception:', e);
@@ -143,7 +154,7 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
         setErrorReq(data.error || 'Errore');
         return;
       }
-      await reloadNotifications();
+  setTimeout(() => reloadNotifications(), 0);
     } catch (e) {
       setErrorReq('Errore di rete');
     } finally {
@@ -206,6 +217,7 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                                   e.preventDefault();
                                   e.stopPropagation();
                                   await handleApprove(n.fromUserId);
+                                  dismissNotification(n.id);
                                 }}
                                 className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 disabled:opacity-60"
                                 disabled={loadingReq === n.fromUserId}
@@ -215,6 +227,7 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                                   e.preventDefault();
                                   e.stopPropagation();
                                   await handleDecline(n.fromUserId);
+                                  dismissNotification(n.id);
                                 }}
                                 className="px-2 py-1 text-xs bg-red-100 text-red-600 rounded hover:bg-red-200 disabled:opacity-60"
                                 disabled={loadingReq === n.fromUserId}
@@ -224,12 +237,13 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                               )}
                             </>
                           )}
-                          {n.type === 'like' && n.postId && (
+          {n.type === 'like' && n.postId && (
                             <button
                               className="flex-1 text-blue-700 hover:underline text-left"
                               onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
+            dismissNotification(n.id);
                                 // Naviga sempre al feed con il post param e invia anche l'evento come fallback
                                 router.push(`/?post=${n.postId}`);
                                 setTimeout(() => {
@@ -239,12 +253,13 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                               }}
                             >{n.message}</button>
                           )}
-                          {n.type === 'comment' && n.postId && (
+          {n.type === 'comment' && n.postId && (
                             <button
                               className="flex-1 text-blue-700 hover:underline text-left"
                               onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
+            dismissNotification(n.id);
                                 router.push(`/?post=${n.postId}`);
                                 setTimeout(() => {
                                   window.dispatchEvent(new CustomEvent('scroll-to-post', { detail: { postId: n.postId } }));
@@ -327,8 +342,8 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                                 <div className="h-8 w-8 rounded-full bg-gray-200" />
                               )}
                               <span className="flex-1">{n.requester.name} <span className="text-gray-500">@{n.requester.username}</span></span>
-                              <button onClick={async (e)=>{ e.preventDefault(); e.stopPropagation(); await handleApprove(n.requester.id) }} className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200">Accetta</button>
-                              <button onClick={async (e)=>{ e.preventDefault(); e.stopPropagation(); await handleDecline(n.requester.id) }} className="px-2 py-1 text-xs bg-red-100 text-red-600 rounded hover:bg-red-200">Rifiuta</button>
+                              <button onClick={async (e)=>{ e.preventDefault(); e.stopPropagation(); await handleApprove(n.requester.id); dismissNotification(n.id); }} className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200">Accetta</button>
+                              <button onClick={async (e)=>{ e.preventDefault(); e.stopPropagation(); await handleDecline(n.requester.id); dismissNotification(n.id); }} className="px-2 py-1 text-xs bg-red-100 text-red-600 rounded hover:bg-red-200">Rifiuta</button>
                             </>
                           ) : (
                             <>
