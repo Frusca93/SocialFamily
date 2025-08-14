@@ -24,7 +24,7 @@ export async function GET() {
 
   // Notifiche: like e comment dal modello Notification
   const otherNotifications = await prisma.notification.findMany({
-    where: { userId },
+    where: { userId, NOT: { type: 'follow-request' as any } },
     orderBy: { createdAt: 'desc' },
     take: 50,
     include: { fromUser: { select: { id: true, name: true, username: true, image: true } } }

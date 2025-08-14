@@ -21,6 +21,16 @@ export default function FeedPageClient({ posts }: { posts: any[] }) {
       setTimeout(() => handleScrollToPost(postParam), 150);
     }
   }, [postParam]);
+
+  // Listen to custom event dispatched by Navbar when already on '/'
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { postId?: string } | undefined;
+      if (detail?.postId) handleScrollToPost(detail.postId);
+    };
+    window.addEventListener('scroll-to-post', handler as EventListener);
+    return () => window.removeEventListener('scroll-to-post', handler as EventListener);
+  }, []);
   return (
     <>
       <FeedClient ref={feedRef} posts={posts} />

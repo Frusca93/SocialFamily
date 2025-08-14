@@ -21,5 +21,7 @@ export async function POST(req: Request) {
   await prisma.follow.create({ data: { followerId: requesterId, followingId: targetId } });
   // Elimina la richiesta di follow (così sparisce dalle notifiche)
   await prisma.followRequest.delete({ where: { requesterId_targetId: { requesterId, targetId } } });
+  // Rimuovi eventuali notifiche duplicate di tipo follow-request
+  await prisma.notification.deleteMany({ where: { userId: targetId, fromUserId: requesterId, type: 'follow-request' as any } });
   return Response.json({ success: true });
 }

@@ -105,7 +105,11 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
     setErrorReq(null);
     try {
       console.log('[DEBUG] handleApprove requesterId:', requesterId);
-      const res = await fetch('/api/follow-request-approve', { method: 'POST', body: JSON.stringify({ requesterId }) });
+      const res = await fetch('/api/follow-request-approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requesterId })
+      });
       console.log('[DEBUG] handleApprove response status:', res.status);
       let data = {};
       try { data = await res.json(); } catch {}
@@ -126,7 +130,11 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
     setLoadingReq(requesterId);
     setErrorReq(null);
     try {
-      const res = await fetch('/api/follow-request-decline', { method: 'POST', body: JSON.stringify({ requesterId }) });
+      const res = await fetch('/api/follow-request-decline', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requesterId })
+      });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         setErrorReq(data.error || 'Errore');
@@ -212,6 +220,8 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                                 setShowNoti(false);
                                 if (onScrollToPost) {
                                   setTimeout(() => onScrollToPost(n.postId), 100);
+                                } else if (window.location.pathname === '/') {
+                                  window.dispatchEvent(new CustomEvent('scroll-to-post', { detail: { postId: n.postId } }));
                                 } else {
                                   router.push(`/?post=${n.postId}`);
                                 }
@@ -225,6 +235,8 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                                 setShowNoti(false);
                                 if (onScrollToPost) {
                                   setTimeout(() => onScrollToPost(n.postId), 100);
+                                } else if (window.location.pathname === '/') {
+                                  window.dispatchEvent(new CustomEvent('scroll-to-post', { detail: { postId: n.postId } }));
                                 } else {
                                   router.push(`/?post=${n.postId}`);
                                 }
@@ -318,6 +330,8 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                                     setShowNoti(false);
                                     if (onScrollToPost) {
                                       setTimeout(() => onScrollToPost(n.postId), 100);
+                                    } else if (window.location.pathname === '/') {
+                                      window.dispatchEvent(new CustomEvent('scroll-to-post', { detail: { postId: n.postId } }));
                                     } else {
                                       router.push(`/?post=${n.postId}`);
                                     }
@@ -331,6 +345,8 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                                     setShowNoti(false);
                                     if (onScrollToPost) {
                                       setTimeout(() => onScrollToPost(n.postId), 100);
+                                    } else if (window.location.pathname === '/') {
+                                      window.dispatchEvent(new CustomEvent('scroll-to-post', { detail: { postId: n.postId } }));
                                     } else {
                                       router.push(`/?post=${n.postId}`);
                                     }
