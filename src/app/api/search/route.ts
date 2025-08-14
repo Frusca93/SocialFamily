@@ -6,8 +6,21 @@ export async function GET(req: Request) {
   if (!q) return Response.json({ users: [], posts: [] })
 
   const [users, posts] = await Promise.all([
-    prisma.user.findMany({ where: { OR: [{ username: { contains: q } }, { name: { contains: q } }] }, take: 5, select: { id: true, name: true, username: true, image: true } }),
-    prisma.post.findMany({ where: { content: { contains: q } }, take: 5, include: { author: true } })
+    prisma.user.findMany({
+      where: {
+        OR: [
+          { username: { contains: q, mode: 'insensitive' } },
+          { name: { contains: q, mode: 'insensitive' } }
+        ]
+      },
+      take: 5,
+      select: { id: true, name: true, username: true, image: true }
+    }),
+    prisma.post.findMany({
+      where: { content: { contains: q, mode: 'insensitive' } },
+      take: 5,
+      include: { author: true }
+    })
   ])
   return Response.json({ users, posts })
 }
