@@ -230,14 +230,12 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                               onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                setShowNoti(false);
-                                if (onScrollToPost) {
-                                  setTimeout(() => onScrollToPost(n.postId), 100);
-                                } else if (window.location.pathname === '/') {
+                                // Naviga sempre al feed con il post param e invia anche l'evento come fallback
+                                router.push(`/?post=${n.postId}`);
+                                setTimeout(() => {
                                   window.dispatchEvent(new CustomEvent('scroll-to-post', { detail: { postId: n.postId } }));
-                                } else {
-                                  router.push(`/?post=${n.postId}`);
-                                }
+                                }, 50);
+                                setShowNoti(false);
                               }}
                             >{n.message}</button>
                           )}
@@ -247,14 +245,11 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                               onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                setShowNoti(false);
-                                if (onScrollToPost) {
-                                  setTimeout(() => onScrollToPost(n.postId), 100);
-                                } else if (window.location.pathname === '/') {
+                                router.push(`/?post=${n.postId}`);
+                                setTimeout(() => {
                                   window.dispatchEvent(new CustomEvent('scroll-to-post', { detail: { postId: n.postId } }));
-                                } else {
-                                  router.push(`/?post=${n.postId}`);
-                                }
+                                }, 50);
+                                setShowNoti(false);
                               }}
                             >{n.message}</button>
                           )}
@@ -344,14 +339,11 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                                   onClick={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
-                                    setShowNoti(false);
-                                    if (onScrollToPost) {
-                                      setTimeout(() => onScrollToPost(n.postId), 100);
-                                    } else if (window.location.pathname === '/') {
+                                    router.push(`/?post=${n.postId}`);
+                                    setTimeout(() => {
                                       window.dispatchEvent(new CustomEvent('scroll-to-post', { detail: { postId: n.postId } }));
-                                    } else {
-                                      router.push(`/?post=${n.postId}`);
-                                    }
+                                    }, 50);
+                                    setShowNoti(false);
                                   }}
                                 >{n.message}</button>
                               )}
@@ -361,14 +353,11 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                                   onClick={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
-                                    setShowNoti(false);
-                                    if (onScrollToPost) {
-                                      setTimeout(() => onScrollToPost(n.postId), 100);
-                                    } else if (window.location.pathname === '/') {
+                                    router.push(`/?post=${n.postId}`);
+                                    setTimeout(() => {
                                       window.dispatchEvent(new CustomEvent('scroll-to-post', { detail: { postId: n.postId } }));
-                                    } else {
-                                      router.push(`/?post=${n.postId}`);
-                                    }
+                                    }, 50);
+                                    setShowNoti(false);
                                   }}
                                 >{n.message}</button>
                               )}

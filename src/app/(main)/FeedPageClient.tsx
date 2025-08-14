@@ -12,13 +12,25 @@ export default function FeedPageClient({ posts }: { posts: any[] }) {
   const handleScrollToPost = (postId: string) => {
     if (feedRef.current && typeof feedRef.current.scrollToPost === 'function') {
       feedRef.current.scrollToPost(postId);
+    } else {
+      // fallback diretto
+      const el = document.getElementById(`post-${postId}`);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   };
   // Auto-scroll when ?post=ID is present or changes
   const postParam = searchParams?.get('post') ?? null;
   useEffect(() => {
     if (postParam) {
-      setTimeout(() => handleScrollToPost(postParam), 150);
+      // prova più volte: la lista può impiegare un attimo a renderizzare
+      let attempts = 0;
+      const max = 12; // ~2s
+      const tick = () => {
+        attempts++;
+        handleScrollToPost(postParam);
+        if (attempts < max) setTimeout(tick, 150);
+      };
+      setTimeout(tick, 100);
     }
   }, [postParam]);
 
