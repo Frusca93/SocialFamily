@@ -221,7 +221,7 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
           </div>
 
           {/* Mobile: icone sinistra/destra */}
-          <div className="flex items-center justify-between w-full sm:hidden mt-2 mb-2 px-2">
+          <div className="relative flex items-center justify-between w-full sm:hidden mt-2 mb-2 px-2">
             <button
               onClick={() => setSearchOpen(true)}
               aria-label={t.searchBtn}
@@ -230,6 +230,33 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
             >
               <FaSearch className="w-5 h-5" />
             </button>
+            {/* Barra di ricerca inline tra le icone */}
+            {searchOpen && (
+              <div className={`absolute left-16 right-16 top-1/2 -translate-y-1/2 ${searchAnimIn ? 'opacity-100 scale-100' : 'opacity-0 scale-95'} transition-all duration-200`}>
+                <form onSubmit={(e)=>{ onSearch(e); setSearchAnimIn(false); setTimeout(()=>setSearchOpen(false), 160); }}>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-black">
+                      <FaSearch className="w-4 h-4" />
+                    </span>
+                    <input
+                      ref={searchInputRef}
+                      value={q}
+                      onChange={e=>setQ(e.target.value)}
+                      placeholder={t.search}
+                      className="w-full rounded-full border bg-white pl-9 pr-9 py-2 text-sm shadow"
+                    />
+                    <button
+                      aria-label="Chiudi e cancella"
+                      type="button"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 p-2 rounded-full text-gray-600 hover:bg-gray-100"
+                      onClick={() => { setQ(''); setSearchAnimIn(false); setTimeout(()=>setSearchOpen(false), 120); }}
+                    >
+                      <BsX className="w-4 h-4" />
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
             {user?.username && (
               <div className="relative" ref={notiRefMobile}>
                 <button onClick={()=>setShowNoti(v=>!v)} className="relative h-12 w-12 rounded-full flex items-center justify-center bg-gradient-to-r from-indigo-400/50 to-purple-400/50 text-black ring-1 ring-black/5 shadow-sm" title="Notifiche">
@@ -526,30 +553,7 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
         )}
       </header>
 
-      {/* Search overlay mobile con animazione leggera */}
-      {searchOpen && (
-        <div className="sm:hidden fixed top-0 left-0 right-0 z-30" onClick={() => { setSearchAnimIn(false); setTimeout(()=>setSearchOpen(false), 180); }}>
-          <div className={`bg-white/95 backdrop-blur shadow-md rounded-b-2xl p-2 pt-3 ${searchAnimIn ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-3'} transition-all duration-200`} onClick={(e)=>e.stopPropagation()}>
-            <form onSubmit={(e)=>{ onSearch(e); setSearchAnimIn(false); setTimeout(()=>setSearchOpen(false), 180); }} className="flex items-center">
-              <div className="relative flex-1">
-                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-black">
-                  <FaSearch className="w-5 h-5" />
-                </span>
-                <input
-                  ref={searchInputRef}
-                  value={q}
-                  onChange={e=>setQ(e.target.value)}
-                  placeholder={t.search}
-                  className="w-full rounded-xl border bg-white pl-10 pr-10 py-2 text-sm"
-                />
-                <button aria-label="Chiudi ricerca" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 p-2 rounded-lg text-gray-600 hover:text-black" onClick={() => { setSearchAnimIn(false); setTimeout(()=>setSearchOpen(false), 180); }}>
-                  <BsX className="w-5 h-5" />
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+  {/* rimosso overlay mobile: ora la ricerca appare tra le icone */}
 
   {/* Spazio per la bottom bar su mobile */}
   <div className="sm:hidden h-20" aria-hidden />
