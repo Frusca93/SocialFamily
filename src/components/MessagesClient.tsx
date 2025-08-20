@@ -65,10 +65,19 @@ export default function MessagesClient({ initialItems = [] as ConversationListIt
 
   const startConversation = useCallback(async (username?: string | null) => {
     if (!username) return
-    const r = await fetch('/api/messages', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) })
-    const j = await r.json()
-    if (j?.id) window.location.href = `/messages/${j.id}`
-  }, [])
+    // Optimistic feedback: chiudi picker e mostra subito in cima
+    setPickerOpen(false)
+    try {
+      const r = await fetch('/api/messages', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) })
+      const j = await r.json()
+      if (j?.id) {
+        window.location.href = `/messages/${j.id}`
+      }
+    } catch {
+      // fallback: ricarica lista
+      load()
+    }
+  }, [load])
 
   return (
     <div className="rounded-2xl border bg-white p-4">

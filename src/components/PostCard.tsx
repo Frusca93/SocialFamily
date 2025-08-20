@@ -1,5 +1,5 @@
 'use client'
-import { useState, useContext, useEffect, useMemo } from 'react'
+import { useState, useContext, useEffect, useMemo, useRef } from 'react'
 import LikesModal from './LikesModal'
 import { LanguageContext } from '@/app/LanguageContext'
 import { useSession } from 'next-auth/react'
@@ -64,6 +64,7 @@ export default function PostCard({ post }: { post: any }) {
   const [likes, setLikes] = useState(post._count?.likes ?? 0)
   const [comments, setComments] = useState(post._count?.comments ?? 0)
   const [comment, setComment] = useState('')
+  const [commentPosting, setCommentPosting] = useState(false)
   const [mentionQuery, setMentionQuery] = useState('')
   const [mentionOpen, setMentionOpen] = useState(false)
   const [showComments, setShowComments] = useState(false)
@@ -93,9 +94,11 @@ export default function PostCard({ post }: { post: any }) {
 
   async function addComment(e: React.FormEvent) {
     e.preventDefault()
-    if (!comment.trim()) return
-    const res = await fetch('/api/comments', { method: 'POST', body: JSON.stringify({ postId: post.id, content: comment }) })
+    if (!comment.trim() || commentPosting) return
+    setCommentPosting(true)
+    const res = await fetch('/api/comments', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: post.id, content: comment }) })
     if (res.ok) { setComments(c => c + 1); setComment('') }
+    setCommentPosting(false)
   }
 
   return (
@@ -191,14 +194,14 @@ export default function PostCard({ post }: { post: any }) {
         </div>
         {showLikes && <LikesModal postId={post.id} onClose={() => setShowLikes(false)} />}
       </footer>
-      <form onSubmit={addComment} className="mt-2 flex gap-2 relative">
+    <form onSubmit={addComment} className="mt-2 flex gap-2 relative">
         <input value={comment} onChange={e=>{
           const val = e.target.value
           setComment(val)
           const caret = e.target.selectionStart || val.length
           const upToCaret = val.slice(0, caret)
           const match = upToCaret.match(/@([a-zA-Z0-9_]{0,20})$/)
-          if (match) { setMentionQuery(match[2] || ''); setMentionOpen(true) } else { setMentionOpen(false); setMentionQuery('') }
+      if (match) { setMentionQuery(match[1] || ''); setMentionOpen(true) } else { setMentionOpen(false); setMentionQuery('') }
         }} placeholder={t.writeComment} className="flex-1 rounded-xl border px-3 py-2" />
   {mentionOpen && (
           <InlineMentionSuggestions
@@ -215,7 +218,13 @@ export default function PostCard({ post }: { post: any }) {
             }}
           />
         )}
-        <button aria-label={t.send} title={t.send} className="rounded-xl border px-3 py-2 flex items-center justify-center text-purple-600 hover:bg-purple-50">
+        <button
+          aria-label={t.send}
+          title={t.send}
+          type="submit"
+          disabled={!comment.trim() || commentPosting}
+          className={`rounded-xl border px-3 py-2 flex items-center justify-center ${commentPosting ? 'opacity-60 cursor-not-allowed' : 'text-purple-600 hover:bg-purple-50'}`}
+        >
           <IoSend className="w-5 h-5" />
         </button>
       </form>
@@ -257,23 +266,30 @@ function renderMentions(text: string) {
 
 function InlineMentionSuggestions({ query, onPick }: { query: string; onPick: (u: any) => void }) {
   const [items, setItems] = useState<any[]>([])
+  const ctrlRef = useRef<AbortController | null>(null)
+  const cacheRef = useRef<Map<string, any[]>>(new Map())
   useEffect(() => {
-    let active = true
-    const run = async () => {
+    const q = (query || '').trim()
+    if (q === '') { setItems([]); return }
+    if (cacheRef.current.has(q)) { setItems(cacheRef.current.get(q) || []); return }
+    ctrlRef.current?.abort()
+    const ctrl = new AbortController()
+    ctrlRef.current = ctrl
+    const t = setTimeout(async () => {
       try {
-  const res = await fetch('/api/friends?q=' + encodeURIComponent(query || ''), { cache: 'no-store' })
+        const res = await fetch('/api/friends?q=' + encodeURIComponent(q), { cache: 'no-store', signal: ctrl.signal })
         let users = await res.json().catch(() => [])
-        if ((!Array.isArray(users) || users.length === 0) && (query || '').length >= 2) {
-          const r2 = await fetch('/api/search?q=' + encodeURIComponent(query), { cache: 'no-store' })
+        if ((!Array.isArray(users) || users.length === 0) && q.length >= 2) {
+          const r2 = await fetch('/api/search?q=' + encodeURIComponent(q), { cache: 'no-store', signal: ctrl.signal })
           const j2 = await r2.json().catch(() => ({ users: [] }))
           users = j2.users || []
         }
-        if (!active) return
+        users = Array.isArray(users) ? users.slice(0, 8) : []
+        cacheRef.current.set(q, users)
         setItems(users)
-      } catch { setItems([]) }
-    }
-    run();
-    return () => { active = false }
+      } catch { /* ignore */ }
+    }, 180)
+    return () => { clearTimeout(t); ctrl.abort() }
   }, [query])
   if (!items.length) return null
   return (
@@ -309,6 +325,7 @@ function InlineComments({ postId, onReplyPosted }: { postId: string; onReplyPost
   const [error, setError] = useState<string | null>(null)
   const [replyFor, setReplyFor] = useState<string | null>(null)
   const [replyText, setReplyText] = useState('')
+  const [replyPosting, setReplyPosting] = useState(false)
 
   useEffect(() => {
     let timer: any
@@ -346,6 +363,8 @@ function InlineComments({ postId, onReplyPosted }: { postId: string; onReplyPost
 
   async function sendReply(parentId: string) {
     if (!replyText.trim()) return
+  if (replyPosting) return
+  setReplyPosting(true)
     const res = await fetch('/api/comments', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -361,6 +380,7 @@ function InlineComments({ postId, onReplyPosted }: { postId: string; onReplyPost
         if (r.ok) setItems(await r.json())
       } catch {}
     }
+  setReplyPosting(false)
   }
 
   return (
@@ -384,7 +404,7 @@ function InlineComments({ postId, onReplyPosted }: { postId: string; onReplyPost
               {replyFor === c.id && (
                 <form onSubmit={(e) => { e.preventDefault(); sendReply(c.id); }} className="mt-2 flex gap-2">
                   <input value={replyText} onChange={e=>setReplyText(e.target.value)} placeholder={t.writeReply} className="flex-1 rounded-xl border px-3 py-1.5 text-sm" />
-                  <button className="rounded-xl border px-3 py-1.5 text-sm">{t.send}</button>
+                  <button disabled={!replyText.trim() || replyPosting} className="rounded-xl border px-3 py-1.5 text-sm disabled:opacity-60">{t.send}</button>
                 </form>
               )}
               {(grouped.byParent[c.id] || []).map((rc: any) => (
@@ -400,7 +420,7 @@ function InlineComments({ postId, onReplyPosted }: { postId: string; onReplyPost
                   {replyFor === rc.id && (
                     <form onSubmit={(e) => { e.preventDefault(); sendReply(rc.id); }} className="mt-2 flex gap-2">
                       <input value={replyText} onChange={e=>setReplyText(e.target.value)} placeholder={t.writeReply} className="flex-1 rounded-xl border px-3 py-1.5 text-sm" />
-                      <button className="rounded-xl border px-3 py-1.5 text-sm">{t.send}</button>
+                      <button disabled={!replyText.trim() || replyPosting} className="rounded-xl border px-3 py-1.5 text-sm disabled:opacity-60">{t.send}</button>
                     </form>
                   )}
                 </div>

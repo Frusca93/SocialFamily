@@ -110,7 +110,7 @@ export default function ChatClient({ conversationId }: { conversationId: string 
   }, [conversationId, input, me])
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div className="flex h-full min-h-0 flex-1 flex-col">
       <div ref={listRef} className="min-h-0 flex-1 overflow-y-auto p-3">
         {loading && messages.length === 0 ? (
           <div className="p-2 text-sm text-gray-500">Caricamento…</div>
