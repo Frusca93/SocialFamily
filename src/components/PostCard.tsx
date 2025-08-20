@@ -200,7 +200,7 @@ export default function PostCard({ post }: { post: any }) {
           const match = upToCaret.match(/(^|\s)@([a-zA-Z0-9_]{0,20})$/)
           if (match) { setMentionQuery(match[2] || ''); setMentionOpen(true) } else { setMentionOpen(false); setMentionQuery('') }
         }} placeholder={t.writeComment} className="flex-1 rounded-xl border px-3 py-2" />
-        {mentionOpen && (
+  {mentionOpen && (
           <InlineMentionSuggestions
             query={mentionQuery}
             onPick={(u)=>{
@@ -272,7 +272,7 @@ function InlineMentionSuggestions({ query, onPick }: { query: string; onPick: (u
   }, [query])
   if (!items.length) return null
   return (
-    <div className="absolute left-0 right-16 -bottom-2 translate-y-full z-20 rounded-xl border bg-white shadow">
+    <div className="absolute left-0 right-16 bottom-full mb-2 z-40 rounded-xl border bg-white shadow">
       <ul className="max-h-56 overflow-auto py-1">
         {items.map((u:any) => (
           <li key={u.id}>
@@ -371,7 +371,7 @@ function InlineComments({ postId, onReplyPosted }: { postId: string; onReplyPost
               <div className="flex items-start gap-2">
                 <div className="flex-1">
                   <div className="font-semibold text-sm">{c.author?.name || t.anonymous} <span className="text-[11px] text-gray-400">@{c.author?.username}</span></div>
-                  <div className="text-sm text-gray-700">{c.content}</div>
+                  <div className="text-sm text-gray-700">{renderMentions(c.content)}</div>
                   <div className="text-xs text-gray-400">{c.createdAt ? new Date(c.createdAt).toLocaleString() : ''}</div>
                 </div>
                 <button className="text-xs text-blue-600 hover:underline" onClick={() => { setReplyFor(c.id); setReplyText('') }}>{t.reply}</button>
@@ -387,7 +387,7 @@ function InlineComments({ postId, onReplyPosted }: { postId: string; onReplyPost
                   <div className="flex items-start gap-2">
                     <div className="flex-1">
                       <div className="font-semibold text-sm">{rc.author?.name || t.anonymous} <span className="text-[10px] text-gray-400">@{rc.author?.username}</span></div>
-                      <div className="text-sm text-gray-700">{rc.content}</div>
+                      <div className="text-sm text-gray-700">{renderMentions(rc.content)}</div>
                       <div className="text-xs text-gray-400">{rc.createdAt ? new Date(rc.createdAt).toLocaleString() : ''}</div>
                     </div>
                     <button className="text-[11px] text-blue-600 hover:underline" onClick={() => { setReplyFor(rc.id); setReplyText('') }}>{t.reply}</button>

@@ -321,7 +321,7 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                                 )}
                               </>
                             )}
-                            {n.type === 'like' && n.postId && (
+                            {(n.type === 'like' || n.type === 'mention') && n.postId && (
                               <button
                                 className="flex-1 text-blue-700 hover:underline text-left"
                                 onClick={(e) => {
@@ -441,7 +441,7 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                           ) : (
                             <>
                               {/* Per like/comment: solo messaggio/link */}
-          {n.type === 'like' && n.postId && (
+          {(n.type === 'like' || n.type === 'mention') && n.postId && (
                                 <button
                                   className="flex-1 text-blue-700 hover:underline text-left"
                                   onClick={(e) => {
