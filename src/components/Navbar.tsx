@@ -225,7 +225,7 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
             <button
               onClick={() => setSearchOpen(true)}
               aria-label={t.searchBtn}
-              className="h-12 w-12 rounded-full flex items-center justify-center bg-gradient-to-r from-indigo-400/50 to-purple-400/50 text-black ring-1 ring-black/5 shadow-sm"
+              className="h-12 w-12 rounded-full flex items-center justify-center bg-gradient-to-r from-indigo-400/80 to-purple-400/80 text-black ring-1 ring-black/5 shadow-sm"
               title={t.searchBtn}
             >
               <FaSearch className="w-5 h-5" />
@@ -259,7 +259,7 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
             )}
             {user?.username && (
               <div className="relative" ref={notiRefMobile}>
-                <button onClick={()=>setShowNoti(v=>!v)} className="relative h-12 w-12 rounded-full flex items-center justify-center bg-gradient-to-r from-indigo-400/50 to-purple-400/50 text-black ring-1 ring-black/5 shadow-sm" title="Notifiche">
+                <button onClick={()=>setShowNoti(v=>!v)} className="relative h-12 w-12 rounded-full flex items-center justify-center bg-gradient-to-r from-indigo-400/80 to-purple-400/80 text-black ring-1 ring-black/5 shadow-sm" title="Notifiche">
                   <BsBellFill className="w-5 h-5" />
                   {noti.length > 0 && (
                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5">{noti.length}</span>

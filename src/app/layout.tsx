@@ -25,7 +25,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <link rel="icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/logo2.png" />
         <meta property="og:image" content="/logo2.png" />
-        <meta name="theme-color" content="#1976d2" />
+  <meta name="theme-color" content="#7c3aed" />
         <title>SocialFamily</title>
       </head>
       <body className="min-h-screen bg-gray-50 text-gray-900">

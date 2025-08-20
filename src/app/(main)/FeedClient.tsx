@@ -5,10 +5,10 @@ import { LanguageContext } from '@/app/LanguageContext';
 import { useContext, useEffect, useState, useImperativeHandle, forwardRef } from 'react';
 
 const translations = {
-  it: { noPosts: 'Nessun post trovato' },
-  en: { noPosts: 'No posts found' },
-  fr: { noPosts: 'Aucun post trouvé' },
-  es: { noPosts: 'Ningún post encontrado' },
+  it: { noPosts: 'Nessun post trovato', explore: 'Esplora' },
+  en: { noPosts: 'No posts found', explore: 'Explore' },
+  fr: { noPosts: 'Aucun post trouvé', explore: 'Explorer' },
+  es: { noPosts: 'Ningún post encontrado', explore: 'Explorar' },
 };
 
 const FeedClient = forwardRef(function FeedClient({ posts }: { posts: any[] }, ref) {
@@ -53,6 +53,9 @@ const FeedClient = forwardRef(function FeedClient({ posts }: { posts: any[] }, r
   }, [feedPosts]);
   return (
     <div className="space-y-6">
+      <div className="flex justify-center sm:justify-start">
+        <h1 className="text-lg font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">{t.explore}</h1>
+      </div>
       <div className="hidden sm:block">
         <NewPost />
       </div>
