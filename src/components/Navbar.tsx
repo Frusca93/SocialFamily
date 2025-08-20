@@ -554,10 +554,6 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
       </header>
 
   {/* rimosso overlay mobile: ora la ricerca appare tra le icone */}
-
-  {/* Spazio per la bottom bar su mobile */}
-  <div className="sm:hidden h-20" aria-hidden />
-
       {/* Bottom navigation mobile */}
       <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-20">
         <div className="relative mx-auto max-w-screen-sm">
