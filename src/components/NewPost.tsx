@@ -167,7 +167,7 @@ export default function NewPost() {
               }
             }}
             placeholder={t.placeholder}
-            className="w-full resize-y min-h-24 rounded-2xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+            className="w-full resize-y min-h-24 rounded-2xl border px-4 py-3 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
           />
           {mentionOpen && (
             <MentionSuggestions
@@ -323,7 +323,7 @@ function MentionSuggestions({ query, onPick }: { query: string; onPick: (u: any)
   }, [query]);
   if (!Array.isArray(items) || items.length === 0) return null;
   return (
-    <div className="absolute left-2 right-2 -bottom-2 translate-y-full sm:translate-y-0 sm:top-full sm:left-0 sm:right-auto sm:min-w-[14rem] z-50 rounded-xl border bg-white shadow">
+    <div className="absolute left-2 right-2 bottom-full mb-2 sm:top-full sm:bottom-auto sm:mb-0 sm:left-0 sm:right-auto sm:min-w-[14rem] z-50 rounded-xl border bg-white shadow">
       <ul className="max-h-56 overflow-auto py-1">
         {items.map(u => (
           <li key={u.id}>
