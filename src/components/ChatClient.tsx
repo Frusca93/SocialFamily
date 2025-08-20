@@ -23,7 +23,7 @@ function useAutoScroll(dep: any) {
   return ref
 }
 
-function Header({ conversationId }: { conversationId: string }) {
+export function ChatHeader({ conversationId }: { conversationId: string }) {
   const [data, setData] = useState<HeaderData | null>(null)
   const load = useCallback(async () => {
     const r = await fetch(`/api/messages/${conversationId}`)
@@ -135,5 +135,3 @@ function MessageBubble({ meId, msg }: { meId: string | null; msg: Message }) {
     </div>
   )
 }
-
-ChatClient.Header = Header as any

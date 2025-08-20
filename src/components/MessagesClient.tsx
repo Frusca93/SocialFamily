@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 
 type ConversationListItem = {
@@ -14,6 +14,10 @@ export default function MessagesClient() {
   const [q, setQ] = useState('')
   const [loading, setLoading] = useState(false)
   const [items, setItems] = useState<ConversationListItem[]>([])
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const [pickerQ, setPickerQ] = useState('')
+  const [pickerUsers, setPickerUsers] = useState<Array<{ id: string; name?: string | null; username?: string | null; image?: string | null }>>([])
+  const pickerRef = useRef<HTMLDivElement | null>(null)
 
   const load = useCallback(async () => {
     try {
@@ -35,18 +39,26 @@ export default function MessagesClient() {
     return () => clearInterval(id)
   }, [load])
 
-  const onNew = useCallback(async () => {
-    const username = prompt('Username della persona')
+  const openPicker = useCallback(() => {
+    setPickerOpen(true); setPickerQ(''); setPickerUsers([])
+  }, [])
+
+  useEffect(() => {
+    if (!pickerOpen) return
+    const id = setTimeout(async () => {
+      const q = pickerQ.trim()
+      const r = await fetch('/api/search' + (q ? `?q=${encodeURIComponent(q)}` : ''))
+      const j = await r.json().catch(() => ({ users: [] }))
+      setPickerUsers(j.users || [])
+    }, 200)
+    return () => clearTimeout(id)
+  }, [pickerOpen, pickerQ])
+
+  const startConversation = useCallback(async (username?: string | null) => {
     if (!username) return
-    const r = await fetch('/api/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username }),
-    })
+    const r = await fetch('/api/messages', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) })
     const j = await r.json()
-    if (j?.id) {
-      window.location.href = `/messages/${j.id}`
-    }
+    if (j?.id) window.location.href = `/messages/${j.id}`
   }, [])
 
   return (
@@ -58,7 +70,7 @@ export default function MessagesClient() {
           placeholder="Cerca persona"
           className="flex-1 rounded-xl border px-3 py-2"
         />
-        <button onClick={onNew} className="rounded-full border px-3 py-2 text-purple-600">
+        <button onClick={openPicker} className="rounded-full border px-3 py-2 text-purple-600">
           +
         </button>
       </div>
@@ -71,6 +83,41 @@ export default function MessagesClient() {
           items.map((x) => <ConversationRow key={x.id} item={x} />)
         )}
       </div>
+
+      {pickerOpen && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30" onClick={() => setPickerOpen(false)}>
+          <div ref={pickerRef} className="safe-pb mb-2 w-full max-w-md rounded-2xl border bg-white p-3 shadow-lg" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-2 text-center font-semibold">Nuova chat</div>
+            <input
+              autoFocus
+              value={pickerQ}
+              onChange={(e) => setPickerQ(e.target.value)}
+              placeholder="Cerca per nome o username"
+              className="mb-2 w-full rounded-xl border px-3 py-2"
+            />
+            <div className="max-h-64 overflow-y-auto divide-y">
+              {pickerUsers.length === 0 ? (
+                <div className="p-3 text-sm text-gray-500">Nessun risultato</div>
+              ) : (
+                pickerUsers.map((u) => (
+                  <button key={u.id} className="flex w-full items-center gap-3 p-3 text-left hover:bg-gray-50" onClick={() => startConversation(u.username)}>
+                    {u.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={u.image || ''} alt={u.username || ''} className="h-10 w-10 rounded-full object-cover" />
+                    ) : (
+                      <span className="h-10 w-10 rounded-full bg-gray-200" />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate font-semibold">{u.name || 'Utente'}</div>
+                      <div className="truncate text-sm text-gray-500">@{u.username}</div>
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -39,8 +39,12 @@ export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}))
   const targetUsername = (body.username as string || '').trim()
   if (!targetUsername) return Response.json({ error: 'username required' }, { status: 400 })
-  const target = await prisma.user.findUnique({ where: { username: targetUsername } })
-  if (!target) return Response.json({ error: 'not found' }, { status: 404 })
+  let target = await prisma.user.findUnique({ where: { username: targetUsername } })
+  if (!target) {
+    const cand = await prisma.user.findFirst({ where: { username: { equals: targetUsername, mode: 'insensitive' } } })
+    if (!cand) return Response.json({ error: 'not found' }, { status: 404 })
+    target = cand
+  }
   if (target.id === userId) return Response.json({ error: 'self' }, { status: 400 })
   const existing = await (prisma as any).conversation.findFirst({
     where: { participants: { every: { userId: { in: [userId, target.id] } } } },

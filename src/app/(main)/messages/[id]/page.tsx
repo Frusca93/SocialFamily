@@ -1,6 +1,6 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import ChatClient from '@/components/ChatClient'
+import ChatClient, { ChatHeader } from '@/components/ChatClient'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -16,7 +16,7 @@ export default async function ChatPage({ params }: { params: { id: string } }) {
         <Link href="/messages" className="rounded-full p-2 hover:bg-gray-100" aria-label="Indietro">
           ←
         </Link>
-        <ChatClient.Header conversationId={params.id} />
+  <ChatHeader conversationId={params.id} />
         <div className="w-8" />
       </div>
       <ChatClient conversationId={params.id} />
