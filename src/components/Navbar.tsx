@@ -1,6 +1,6 @@
 'use client'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useRef as useDomRef } from 'react';
 import { useScrollToPost } from '@/app/(main)/ScrollToPostContext';
 import Logo from './Logo'
@@ -68,6 +68,7 @@ type NavbarProps = {
 
 export default function Navbar({ onScrollToPost }: NavbarProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const [q, setQ] = useState('')
   const [results, setResults] = useState<any | null>(null)
   const { data: session } = useSession()
@@ -582,7 +583,7 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
       <div className="h-20 rounded-t-3xl bg-gradient-to-r from-indigo-400 to-purple-400 text-white px-6 flex items-center justify-between shadow-2xl">
             {/* Home */}
             <button
-              className="p-2 rounded-full hover:bg-white/10"
+              className={`p-2 rounded-full ${pathname === '/' ? 'bg-purple-900/30' : 'hover:bg-white/10'}`}
               aria-label="Home"
               onClick={() => router.push('/')}
             >
@@ -591,7 +592,7 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
 
             {/* Profile */}
             <button
-              className="p-2 rounded-full hover:bg-white/10"
+              className={`p-2 rounded-full ${user?.username && pathname.startsWith(`/profile/${user.username}`) ? 'bg-purple-900/30' : 'hover:bg-white/10'}`}
               aria-label={t.profile}
               onClick={() => user?.username && router.push(`/profile/${user.username}`)}
             >
@@ -611,7 +612,7 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
 
             {/* Chat placeholder */}
             <button
-              className="relative p-2 rounded-full hover:bg-white/10"
+              className={`relative p-2 rounded-full ${pathname.startsWith('/messages') ? 'bg-purple-900/30' : 'hover:bg-white/10'}`}
               aria-label="Messaggi"
               onClick={() => router.push('/messages')}
             >
