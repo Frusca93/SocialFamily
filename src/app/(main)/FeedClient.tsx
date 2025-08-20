@@ -53,7 +53,9 @@ const FeedClient = forwardRef(function FeedClient({ posts }: { posts: any[] }, r
   }, [feedPosts]);
   return (
     <div className="space-y-6">
-      <NewPost />
+      <div className="hidden sm:block">
+        <NewPost />
+      </div>
       <div className="space-y-4">
         {feedPosts.length === 0 ? (
           <div className="text-center text-gray-500">{t.noPosts}</div>

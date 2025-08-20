@@ -4,6 +4,8 @@ import LikesModal from './LikesModal'
 import { LanguageContext } from '@/app/LanguageContext'
 import { useSession } from 'next-auth/react'
 import DeleteConfirmModal from './DeleteConfirmModal'
+import { FaHeart, FaRegHeart } from 'react-icons/fa'
+import { BsChatDots } from 'react-icons/bs'
 
 const translations = {
   it: {
@@ -93,7 +95,8 @@ export default function PostCard({ post }: { post: any }) {
   }
 
   return (
-    <article id={post.id ? `post-${post.id}` : undefined} className="relative rounded-2xl border bg-white p-4">
+    <article id={post.id ? `post-${post.id}` : undefined} className="relative rounded-2xl p-[1px] bg-gradient-to-b from-indigo-400 to-purple-400">
+      <div className="rounded-2xl bg-white/90 backdrop-blur p-4">
       <header className="mb-2 flex items-center gap-3">
         {isOwner && (
           <button
@@ -144,35 +147,43 @@ export default function PostCard({ post }: { post: any }) {
             <video src={post.mediaUrl} controls className="mt-3 w-full rounded-xl border" />
           )
       )}
-      <footer className="mt-3 flex items-center gap-4 text-sm">
-        <button
-          onClick={toggleLike}
-          className="rounded-xl border px-3 py-1 flex items-center gap-2 group"
-          aria-label={t.like}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill={liked ? '#ef4444' : 'none'}
-            stroke={liked ? '#ef4444' : 'black'}
-            strokeWidth={1.5}
-            className="w-6 h-6 transition-colors"
+      <footer className="mt-3 flex items-center justify-between text-sm">
+        {/* Likes a sinistra */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={toggleLike}
+            className="p-2 rounded-full hover:bg-gray-100"
+            aria-label={t.like}
+            title={t.like}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M16.5 3.75c-1.74 0-3.41 1.01-4.5 2.62C10.91 4.76 9.24 3.75 7.5 3.75 4.42 3.75 2 6.16 2 9.21c0 3.4 3.4 6.13 8.55 10.29a1.5 1.5 0 0 0 1.9 0C18.6 15.34 22 12.61 22 9.21c0-3.05-2.42-5.46-5.5-5.46z"
-            />
-          </svg>
-        </button>
-        <button
-          onClick={() => setShowLikes(true)}
-          className="ml-1 px-2 py-0.5 rounded-full border text-xs font-semibold text-gray-700 bg-white hover:bg-gray-100 transition"
-          aria-label="Vedi chi ha messo Mi Piace"
-        >
-          {likes}
-        </button>
-  <button onClick={() => setShowComments(v => !v)} className="rounded-xl border px-3 py-1">{t.comments}: {comments}</button>
+            {liked ? (
+              <FaHeart className="w-5 h-5 text-red-500" />
+            ) : (
+              <FaRegHeart className="w-5 h-5 text-gray-700" />
+            )}
+          </button>
+          <button
+            onClick={() => setShowLikes(true)}
+            className="px-2 py-0.5 rounded text-xs font-semibold text-gray-700 hover:bg-gray-100"
+            aria-label="Vedi chi ha messo Mi Piace"
+            title="Vedi Mi piace"
+          >
+            {likes}
+          </button>
+        </div>
+
+        {/* Commenti a destra */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowComments(v => !v)}
+            className="p-2 rounded-full hover:bg-gray-100"
+            aria-label={t.comments}
+            title={t.comments}
+          >
+            <BsChatDots className="w-5 h-5 text-gray-700" />
+          </button>
+          <span className="text-xs font-semibold text-gray-700">{comments}</span>
+        </div>
         {showLikes && <LikesModal postId={post.id} onClose={() => setShowLikes(false)} />}
       </footer>
       <form onSubmit={addComment} className="mt-2 flex gap-2">
@@ -183,6 +194,7 @@ export default function PostCard({ post }: { post: any }) {
       {showComments && (
         <InlineComments postId={post.id} onReplyPosted={() => setComments(c => c + 1)} />
       )}
+      </div>
     </article>
   )
 }
