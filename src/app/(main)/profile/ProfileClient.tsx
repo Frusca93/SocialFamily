@@ -13,6 +13,7 @@ const translations = {
     followers: 'follower',
     following: 'seguiti',
     settings: 'Impostazioni',
+  pageTitle: 'Profilo',
   },
   en: {
     notFound: 'User not found',
@@ -20,6 +21,7 @@ const translations = {
     followers: 'followers',
     following: 'following',
     settings: 'Settings',
+  pageTitle: 'Profile',
   },
   fr: {
     notFound: 'Utilisateur non trouvé',
@@ -27,6 +29,7 @@ const translations = {
     followers: 'abonnés',
     following: 'abonnements',
     settings: 'Paramètres',
+  pageTitle: 'Profil',
   },
   es: {
     notFound: 'Usuario no encontrado',
@@ -34,6 +37,7 @@ const translations = {
     followers: 'seguidores',
     following: 'seguidos',
     settings: 'Configuración',
+  pageTitle: 'Perfil',
   },
 };
 
@@ -90,6 +94,11 @@ export default function ProfileClient({ user, posts, followers, following, isOwn
   if (!user) return <div className="p-6">{t.notFound}</div>;
   return (
     <div className="space-y-4">
+      <div className="flex justify-center sm:justify-start">
+        <h1 className="text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent tracking-tight">
+          {t.pageTitle}
+        </h1>
+      </div>
       <div className="rounded-2xl border bg-white p-6">
         <div className="flex items-center gap-4 relative">
           {user.image ? (
@@ -97,7 +106,7 @@ export default function ProfileClient({ user, posts, followers, following, isOwn
           ) : (
             <div className="h-16 w-16 rounded-full bg-gray-200" />
           )}
-          <div>
+          <div className="pr-10">
             <h1 className="text-xl font-semibold">{user.name} <span className="text-gray-500">@{user.username}</span></h1>
             <p className="text-sm text-gray-600">{user.bio || t.bioUnset}</p>
             <p className="mt-2 text-sm text-gray-600">
@@ -107,8 +116,8 @@ export default function ProfileClient({ user, posts, followers, following, isOwn
             </p>
           </div>
           {isOwner ? (
-            <a href="/settings" className="absolute top-3 right-3 p-2 rounded-full hover:bg-gray-100" aria-label={t.settings} title={t.settings}>
-              <FiSettings className="w-6 h-6 text-gray-700" />
+            <a href="/settings" className="absolute top-2 right-2 p-2 rounded-full hover:bg-gray-100" aria-label={t.settings} title={t.settings}>
+              <FiSettings className="w-7 h-7 text-purple-600" />
             </a>
           ) : (
             <div className="ml-auto">

@@ -160,8 +160,7 @@ export default function SettingsClient({ user, onSave }: any) {
   }
 
   return (
-    <form onSubmit={handleSave} className="max-w-lg mx-auto rounded-2xl border bg-white p-6 flex flex-col gap-4">
-      <h2 className="text-2xl font-bold mb-2">{t.title}</h2>
+  <form onSubmit={handleSave} className="max-w-lg mx-auto rounded-2xl border bg-white p-6 flex flex-col gap-4">
       <label className="font-semibold">{t.username}</label>
       <input
         value={username}
@@ -186,7 +185,7 @@ export default function SettingsClient({ user, onSave }: any) {
       {(filePreview || image) && (
         <img src={filePreview || image} alt="preview" className="mt-2 max-h-32 rounded-xl border object-contain" />
       )}
-      <button disabled={loading} className="mt-4 rounded-xl bg-blue-600 px-4 py-2 font-semibold text-white disabled:opacity-50">{t.save}</button>
+  <button disabled={loading} className="mt-4 rounded-xl bg-purple-600 px-4 py-2 font-semibold text-white disabled:opacity-50">{t.save}</button>
       {success && <div className="text-green-600 font-semibold">{t.saved}</div>}
       {error && <div className="text-red-600 font-semibold">{error}</div>}
     </form>

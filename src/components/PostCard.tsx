@@ -189,7 +189,7 @@ export default function PostCard({ post }: { post: any }) {
       </footer>
       <form onSubmit={addComment} className="mt-2 flex gap-2">
         <input value={comment} onChange={e=>setComment(e.target.value)} placeholder={t.writeComment} className="flex-1 rounded-xl border px-3 py-2" />
-        <button aria-label={t.send} title={t.send} className="rounded-xl border px-3 py-2 flex items-center justify-center text-blue-700 hover:bg-blue-50">
+        <button aria-label={t.send} title={t.send} className="rounded-xl border px-3 py-2 flex items-center justify-center text-purple-600 hover:bg-purple-50">
           <IoSend className="w-5 h-5" />
         </button>
       </form>

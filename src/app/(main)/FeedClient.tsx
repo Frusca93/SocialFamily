@@ -52,7 +52,7 @@ const FeedClient = forwardRef(function FeedClient({ posts }: { posts: any[] }, r
     return () => clearInterval(id);
   }, [feedPosts]);
   return (
-    <div className="space-y-6">
+    <div className="space-y-0 sm:space-y-6">
       <div className="flex justify-center sm:justify-start">
         <h1 className="text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent tracking-tight">
           {t.explore}
@@ -61,7 +61,7 @@ const FeedClient = forwardRef(function FeedClient({ posts }: { posts: any[] }, r
       <div className="hidden sm:block">
         <NewPost />
       </div>
-      <div className="space-y-4">
+      <div className="mt-2 sm:mt-0 space-y-4">
         {feedPosts.length === 0 ? (
           <div className="text-center text-gray-500">{t.noPosts}</div>
         ) : (
