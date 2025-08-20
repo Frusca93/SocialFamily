@@ -69,6 +69,7 @@ export default function PostCard({ post }: { post: any }) {
   const [mentionOpen, setMentionOpen] = useState(false)
   const [showComments, setShowComments] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const { data: session } = useSession()
   const isOwner = session?.user && (session.user as any).id === post.authorId
 
@@ -76,9 +77,17 @@ export default function PostCard({ post }: { post: any }) {
   const t = translations[lang as keyof typeof translations] || translations.it
 
   async function handleDelete() {
-    const res = await fetch(`/api/posts/${post.id}`, { method: 'DELETE' })
-    if (res.ok) {
-      window.location.reload()
+    if (deleting) return
+    setDeleting(true)
+    try {
+      const res = await fetch(`/api/posts/${post.id}`, { method: 'DELETE' })
+      if (res.ok) {
+        // chiudi modal e ricarica
+        setShowDelete(false)
+        window.location.reload()
+      }
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -116,7 +125,7 @@ export default function PostCard({ post }: { post: any }) {
           </button>
         )}
       {showDelete && (
-        <DeleteConfirmModal onConfirm={handleDelete} onCancel={() => setShowDelete(false)} />
+        <DeleteConfirmModal loading={deleting} onConfirm={handleDelete} onCancel={() => setShowDelete(false)} />
       )}
         <a href={post.author?.username ? `/profile/${post.author.username}` : '#'} className="flex items-center gap-3">
           {post.author?.image ? (
