@@ -7,7 +7,8 @@ import Logo from './Logo'
 import { useState, useContext, useEffect, useRef } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { LanguageContext } from '@/app/LanguageContext'
-import { BsBell, BsPersonCircle, BsBoxArrowRight, BsSearch, BsX, BsHouseDoor, BsChatDots, BsPlusLg } from 'react-icons/bs'
+import { BsBellFill, BsPersonCircle, BsBoxArrowRight, BsSearch, BsX, BsHouseDoor, BsChatDots, BsPlusLg } from 'react-icons/bs'
+import { FaSearch } from 'react-icons/fa'
 import NewPost from './NewPost'
 
 const translations = {
@@ -211,7 +212,7 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
 
   return (
     <>
-      <header className="sticky top-0 z-10 bg-gray-50/80 py-1.5 px-2 sm:px-4 backdrop-blur">
+  <header className="sticky top-0 z-10 bg-transparent sm:bg-gray-50/80 py-1.5 px-2 sm:px-4 backdrop-blur border-b border-black/5 sm:border-transparent shadow-sm sm:shadow-none">
         <div className="flex items-center gap-2 sm:gap-3 w-full">
           {/* Logo solo desktop */}
           <div className="hidden sm:flex items-center">
@@ -220,19 +221,19 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
           </div>
 
           {/* Mobile: icone sinistra/destra */}
-          <div className="flex items-center justify-between w-full sm:hidden">
+          <div className="flex items-center justify-between w-full sm:hidden mt-2 mb-2 px-2">
             <button
               onClick={() => setSearchOpen(true)}
               aria-label={t.searchBtn}
-              className="h-10 w-10 rounded-full flex items-center justify-center bg-gradient-to-r from-indigo-400 to-purple-400 text-black shadow"
+              className="h-12 w-12 rounded-full flex items-center justify-center bg-gradient-to-r from-indigo-400/50 to-purple-400/50 text-black ring-1 ring-black/5 shadow-sm"
               title={t.searchBtn}
             >
-              <BsSearch className="w-5 h-5" />
+              <FaSearch className="w-5 h-5" />
             </button>
             {user?.username && (
               <div className="relative" ref={notiRefMobile}>
-                <button onClick={()=>setShowNoti(v=>!v)} className="relative h-10 w-10 rounded-full flex items-center justify-center bg-gradient-to-r from-indigo-400 to-purple-400 text-black shadow" title="Notifiche">
-                  <BsBell className="w-5 h-5" />
+                <button onClick={()=>setShowNoti(v=>!v)} className="relative h-12 w-12 rounded-full flex items-center justify-center bg-gradient-to-r from-indigo-400/50 to-purple-400/50 text-black ring-1 ring-black/5 shadow-sm" title="Notifiche">
+                  <BsBellFill className="w-5 h-5" />
                   {noti.length > 0 && (
                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5">{noti.length}</span>
                   )}
@@ -370,7 +371,7 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
             <div className="relative" ref={notiRefDesktop}>
       <button onClick={()=>setShowNoti(v=>!v)} className="relative rounded-full p-2 text-gray-700 hover:bg-gray-200" title="Notifiche">
                 <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-300">
-                  <BsBell className="w-5 h-5" />
+                  <BsBellFill className="w-5 h-5" />
                 </span>
                 {noti.length > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5">{noti.length}</span>
@@ -516,11 +517,11 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
       {/* Search overlay mobile con animazione leggera */}
       {searchOpen && (
         <div className="sm:hidden fixed top-0 left-0 right-0 z-30" onClick={() => { setSearchAnimIn(false); setTimeout(()=>setSearchOpen(false), 180); }}>
-          <div className={`bg-white/95 backdrop-blur shadow p-2 ${searchAnimIn ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-3'} transition-all duration-200`} onClick={(e)=>e.stopPropagation()}>
+          <div className={`bg-white/95 backdrop-blur shadow-md rounded-b-2xl p-2 pt-3 ${searchAnimIn ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-3'} transition-all duration-200`} onClick={(e)=>e.stopPropagation()}>
             <form onSubmit={(e)=>{ onSearch(e); setSearchAnimIn(false); setTimeout(()=>setSearchOpen(false), 180); }} className="flex items-center">
               <div className="relative flex-1">
                 <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-black">
-                  <BsSearch className="w-5 h-5" />
+                  <FaSearch className="w-5 h-5" />
                 </span>
                 <input
                   ref={searchInputRef}
