@@ -491,7 +491,19 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                   <h4 className="mb-1 font-semibold">{t.users}</h4>
                   <ul className="space-y-1">
                     {results.users.map((u: any) => (
-                      <li key={u.id}><Link className="text-blue-700" href={`/profile/${u.username}`}>@{u.username}</Link></li>
+                      <li key={u.id}>
+                        <Link href={`/profile/${u.username}`} className="flex items-center gap-3 rounded-lg px-2 py-1.5 hover:bg-gray-50">
+                          {u.image ? (
+                            <img src={u.image} alt={u.name || u.username} className="h-8 w-8 rounded-full object-cover" />
+                          ) : (
+                            <div className="h-8 w-8 rounded-full bg-gray-200" />
+                          )}
+                          <div className="min-w-0">
+                            <div className="text-sm font-medium truncate">{u.name || u.username}</div>
+                            <div className="text-xs text-gray-500 truncate">@{u.username}</div>
+                          </div>
+                        </Link>
+                      </li>
                     ))}
                   </ul>
                 </div>
@@ -565,13 +577,13 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
             </button>
 
             {/* Plus floating */}
-            <div className="absolute left-1/2 -top-8 -translate-x-1/2">
+      <div className="absolute left-1/2 -top-7 -translate-x-1/2">
               <button
                 aria-label="Nuovo post"
                 onClick={() => setShowComposer(true)}
-                className="h-16 w-16 rounded-full bg-white text-blue-700 shadow-xl ring-8 ring-white flex items-center justify-center"
+        className="h-12 w-12 rounded-full bg-white text-blue-700 shadow-xl ring-6 ring-white flex items-center justify-center"
               >
-                <BsPlusLg className="w-6 h-6" />
+        <BsPlusLg className="w-5 h-5" />
               </button>
             </div>
 

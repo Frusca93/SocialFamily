@@ -7,6 +7,13 @@ export async function POST(req: Request) {
   if (!session?.user) return Response.json({ error: 'Unauthorized' }, { status: 401 })
   const { username, bio, language } = await req.json()
   if (!username || typeof username !== 'string') return Response.json({ error: 'Username non valido' }, { status: 400 })
-  await prisma.user.update({ where: { id: (session.user as any).id }, data: { username, bio, language } })
+  const meId = (session.user as any).id
+  // Verifica unicità username se cambiato
+  const current = await prisma.user.findUnique({ where: { id: meId }, select: { username: true } })
+  if (current?.username !== username) {
+    const existing = await prisma.user.findUnique({ where: { username } })
+    if (existing) return Response.json({ error: 'unique_username' }, { status: 409 })
+  }
+  await prisma.user.update({ where: { id: meId }, data: { username, bio, language } })
   return Response.json({ ok: true })
 }
