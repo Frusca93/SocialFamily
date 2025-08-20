@@ -7,7 +7,8 @@ import Logo from './Logo'
 import { useState, useContext, useEffect, useRef } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { LanguageContext } from '@/app/LanguageContext'
-import { BsBell, BsPersonCircle, BsBoxArrowRight, BsSearch, BsList, BsX } from 'react-icons/bs'
+import { BsBell, BsPersonCircle, BsBoxArrowRight, BsSearch, BsX, BsHouseDoor, BsChatDots, BsPlusLg } from 'react-icons/bs'
+import NewPost from './NewPost'
 
 const translations = {
   it: {
@@ -93,8 +94,8 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
     return () => clearInterval(id);
   }, [user?.id])
 
-  // Burger menu mobile
-  const [showMenu, setShowMenu] = useState(false)
+  // Composer modal (mobile + button)
+  const [showComposer, setShowComposer] = useState(false)
   // Chiudi dropdown se clic fuori (robusto su mobile): usa pointerdown + composedPath
   useEffect(() => {
     const handle = (e: PointerEvent) => {
@@ -197,176 +198,155 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
   }, [q])
 
   return (
-    <header className="sticky top-0 z-10 bg-gray-50/80 py-1.5 px-2 sm:px-4 backdrop-blur">
-      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full">
-        <div className="flex items-center justify-between w-full sm:w-auto">
-          <div className="flex items-center">
+    <>
+      <header className="sticky top-0 z-10 bg-gray-50/80 py-1.5 px-2 sm:px-4 backdrop-blur">
+        <div className="flex items-center gap-2 sm:gap-3 w-full">
+          {/* Logo solo desktop */}
+          <div className="hidden sm:flex items-center">
             <Logo className="h-12 w-12" />
-            <span className="ml-2 text-xl font-bold hidden sm:inline align-middle" style={{ color: '#1976d2' }}>SocialFamily</span>
+            <span className="ml-2 text-xl font-bold align-middle" style={{ color: '#1976d2' }}>SocialFamily</span>
           </div>
-        <div className="flex items-center gap-2 sm:hidden">
-          {/* Notifiche sempre visibili */}
-          {user?.username && (
-            <div className="relative" ref={notiRefMobile}>
-              <button onClick={()=>setShowNoti(v=>!v)} className="relative rounded-full p-2 hover:bg-gray-200" title="Notifiche">
-                <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 text-gray-700">
-                  <BsBell className="w-5 h-5" />
+
+          {/* Search bar (sempre visibile) + Notifiche su mobile a destra */}
+          <div className="flex items-center gap-2 flex-1">
+            <form onSubmit={onSearch} className="flex flex-1 items-center w-full sm:w-auto">
+              <div className="relative flex-1">
+                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-400">
+                  <BsSearch className="w-5 h-5" />
                 </span>
-                {noti.length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5">{noti.length}</span>
-                )}
-              </button>
-              {showNoti && (
-                <div className="absolute right-0 mt-2 w-72 sm:w-80 rounded-xl border bg-white shadow-lg z-50">
-                  <div className="p-3 font-semibold border-b flex items-center justify-between">
-                    <span>Richieste di follow</span>
-                    {noti.length > 0 && (
-                      <button
-                        className="text-xs text-blue-600 hover:underline"
-                        onClick={(e)=>{ e.preventDefault(); e.stopPropagation(); const ids = noti.map(n=>n.id); setNoti([]); fetch('/api/notifications', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids }) }).catch(()=>{}) }}
-                      >Segna tutte come lette</button>
-                    )}
-                  </div>
-                  {noti.length === 0 ? (
-                    <div className="p-3 text-gray-500 text-sm">Nessuna notifica</div>
-                  ) : (
-                    <ul className="max-h-80 overflow-y-auto divide-y">
-                      {noti.map(n => (
-                        <li key={n.id} className="flex items-center gap-2 p-3">
-                          {n.type === 'follow-request' && n.fromUserId && (
-                            <>
-                              {n.requester ? (
-                                <>
-                                  {n.requester.image ? (
-                                    <img src={n.requester.image} alt="avatar" className="h-8 w-8 rounded-full object-cover" />
-                                  ) : (
-                                    <div className="h-8 w-8 rounded-full bg-gray-200" />
-                                  )}
-                                  <span className="flex-1">{n.requester.name} <span className="text-gray-500">@{n.requester.username}</span></span>
-                                </>
-                              ) : (
-                                <span className="flex-1">{n.message}</span>
-                              )}
-                              <button
-                                onClick={async (e)=>{
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  await handleApprove(n.fromUserId);
-                                  dismissNotification(n.id);
-                                }}
-                                className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 disabled:opacity-60"
-                                disabled={loadingReq === n.fromUserId}
-                              >{loadingReq === n.fromUserId ? '...' : 'Accetta'}</button>
-                              <button
-                                onClick={async (e)=>{
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  await handleDecline(n.fromUserId);
-                                  dismissNotification(n.id);
-                                }}
-                                className="px-2 py-1 text-xs bg-red-100 text-red-600 rounded hover:bg-red-200 disabled:opacity-60"
-                                disabled={loadingReq === n.fromUserId}
-                              >{loadingReq === n.fromUserId ? '...' : 'Rifiuta'}</button>
-                              {errorReq && (
-                                <div className="text-red-500 text-xs p-2">{errorReq}</div>
-                              )}
-                            </>
-                          )}
-                          {n.type === 'like' && n.postId && (
-                            <button
-                              className="flex-1 text-blue-700 hover:underline text-left"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-            dismissNotification(n.id);
-                                // Naviga sempre al feed con il post param e invia anche l'evento come fallback
-                                router.push(`/?post=${n.postId}`);
-                                setTimeout(() => {
-                                  window.dispatchEvent(new CustomEvent('scroll-to-post', { detail: { postId: n.postId } }));
-                                }, 50);
-                                setShowNoti(false);
-                              }}
-                            >{n.message}</button>
-                          )}
-          {(n.type === 'comment' || n.type === 'comment-reply') && n.postId && (
-                            <button
-                              className="flex-1 text-blue-700 hover:underline text-left"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-            dismissNotification(n.id);
-                                router.push(`/?post=${n.postId}`);
-                                setTimeout(() => {
-                                  window.dispatchEvent(new CustomEvent('scroll-to-post', { detail: { postId: n.postId } }));
-                                }, 50);
-                                setShowNoti(false);
-                              }}
-                            >{n.message}</button>
-                          )}
-                          {/* dismiss manuale per altri tipi */}
-                          {n.type !== 'follow-request' && (
-                            <button
-                              aria-label="Chiudi notifica"
-                              className="ml-2 p-1 rounded hover:bg-gray-100"
-                              onClick={(e)=>{ e.preventDefault(); e.stopPropagation(); dismissNotification(n.id) }}
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                              </svg>
-                            </button>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-          {/* Burger menu */}
-          <button onClick={()=>setShowMenu(v=>!v)} className="rounded p-2 hover:bg-gray-200" aria-label="Menu">
-            {showMenu ? (
-              <BsX className="w-7 h-7" />
-            ) : (
-              <BsList className="w-7 h-7" />
-            )}
-          </button>
-          {showMenu && (
-            <div className="absolute top-14 right-2 w-40 rounded-xl border bg-white shadow-lg z-50 flex flex-col animate-fade-in">
-              {/* X in alto a destra, fuori dalle voci */}
-              <div className="flex justify-end">
-                <button onClick={()=>setShowMenu(false)} className="p-2 text-gray-500 hover:text-black sm:hidden" aria-label="Chiudi menu">
-                  <BsX className="w-6 h-6" />
+                <input
+                  value={q}
+                  onChange={e=>setQ(e.target.value)}
+                  placeholder={t.search}
+                  className="w-full rounded-xl border bg-white pl-10 pr-10 py-2 text-sm"
+                />
+                <button aria-label={t.searchBtn} className="absolute right-1 top-1/2 -translate-y-1/2 p-2 rounded-lg text-gray-600 hover:text-black">
+                  <BsSearch className="w-5 h-5" />
                 </button>
               </div>
-              {user?.username && (
-                <Link href={`/profile/${user.username}`} className="px-4 py-3 hover:bg-gray-100 border-b" onClick={()=>setShowMenu(false)}>{t.profile}</Link>
-              )}
-              <button
-                onClick={() => { setShowMenu(false); signOut({ callbackUrl: '/login' }) }}
-                className="px-4 py-3 hover:bg-gray-100 text-left"
-              >{t.logout}</button>
-            </div>
-          )}
-        </div>
-        </div>
-        <form onSubmit={onSearch} className="flex flex-1 items-center w-full sm:w-auto">
-          <div className="relative flex-1">
-            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-400">
-              <BsSearch className="w-5 h-5" />
-            </span>
-            <input
-              value={q}
-              onChange={e=>setQ(e.target.value)}
-              placeholder={t.search}
-              className="w-full rounded-xl border bg-white pl-10 pr-10 py-2 text-sm"
-            />
-            <button aria-label={t.searchBtn} className="absolute right-1 top-1/2 -translate-y-1/2 p-2 rounded-lg text-gray-600 hover:text-black">
-              <BsSearch className="w-5 h-5" />
-            </button>
+            </form>
+
+            {/* Notifiche mobile */}
+            {user?.username && (
+              <div className="relative sm:hidden" ref={notiRefMobile}>
+                <button onClick={()=>setShowNoti(v=>!v)} className="relative rounded-full p-2 hover:bg-gray-200" title="Notifiche">
+                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 text-gray-700">
+                    <BsBell className="w-5 h-5" />
+                  </span>
+                  {noti.length > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5">{noti.length}</span>
+                  )}
+                </button>
+                {showNoti && (
+                  <div className="absolute right-0 mt-2 w-72 sm:w-80 rounded-xl border bg-white shadow-lg z-50">
+                    <div className="p-3 font-semibold border-b flex items-center justify-between">
+                      <span>Richieste di follow</span>
+                      {noti.length > 0 && (
+                        <button
+                          className="text-xs text-blue-600 hover:underline"
+                          onClick={(e)=>{ e.preventDefault(); e.stopPropagation(); const ids = noti.map(n=>n.id); setNoti([]); fetch('/api/notifications', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids }) }).catch(()=>{}) }}
+                        >Segna tutte come lette</button>
+                      )}
+                    </div>
+                    {noti.length === 0 ? (
+                      <div className="p-3 text-gray-500 text-sm">Nessuna notifica</div>
+                    ) : (
+                      <ul className="max-h-80 overflow-y-auto divide-y">
+                        {noti.map(n => (
+                          <li key={n.id} className="flex items-center gap-2 p-3">
+                            {n.type === 'follow-request' && n.fromUserId && (
+                              <>
+                                {n.requester ? (
+                                  <>
+                                    {n.requester.image ? (
+                                      <img src={n.requester.image} alt="avatar" className="h-8 w-8 rounded-full object-cover" />
+                                    ) : (
+                                      <div className="h-8 w-8 rounded-full bg-gray-200" />
+                                    )}
+                                    <span className="flex-1">{n.requester.name} <span className="text-gray-500">@{n.requester.username}</span></span>
+                                  </>
+                                ) : (
+                                  <span className="flex-1">{n.message}</span>
+                                )}
+                                <button
+                                  onClick={async (e)=>{
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    await handleApprove(n.fromUserId);
+                                    dismissNotification(n.id);
+                                  }}
+                                  className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded hover:bg-green-200 disabled:opacity-60"
+                                  disabled={loadingReq === n.fromUserId}
+                                >{loadingReq === n.fromUserId ? '...' : 'Accetta'}</button>
+                                <button
+                                  onClick={async (e)=>{
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    await handleDecline(n.fromUserId);
+                                    dismissNotification(n.id);
+                                  }}
+                                  className="px-2 py-1 text-xs bg-red-100 text-red-600 rounded hover:bg-red-200 disabled:opacity-60"
+                                  disabled={loadingReq === n.fromUserId}
+                                >{loadingReq === n.fromUserId ? '...' : 'Rifiuta'}</button>
+                                {errorReq && (
+                                  <div className="text-red-500 text-xs p-2">{errorReq}</div>
+                                )}
+                              </>
+                            )}
+                            {n.type === 'like' && n.postId && (
+                              <button
+                                className="flex-1 text-blue-700 hover:underline text-left"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  dismissNotification(n.id);
+                                  router.push(`/?post=${n.postId}`);
+                                  setTimeout(() => {
+                                    window.dispatchEvent(new CustomEvent('scroll-to-post', { detail: { postId: n.postId } }));
+                                  }, 50);
+                                  setShowNoti(false);
+                                }}
+                              >{n.message}</button>
+                            )}
+                            {(n.type === 'comment' || n.type === 'comment-reply') && n.postId && (
+                              <button
+                                className="flex-1 text-blue-700 hover:underline text-left"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  dismissNotification(n.id);
+                                  router.push(`/?post=${n.postId}`);
+                                  setTimeout(() => {
+                                    window.dispatchEvent(new CustomEvent('scroll-to-post', { detail: { postId: n.postId } }));
+                                  }, 50);
+                                  setShowNoti(false);
+                                }}
+                              >{n.message}</button>
+                            )}
+                            {/* dismiss manuale per altri tipi */}
+                            {n.type !== 'follow-request' && (
+                              <button
+                                aria-label="Chiudi notifica"
+                                className="ml-2 p-1 rounded hover:bg-gray-100"
+                                onClick={(e)=>{ e.preventDefault(); e.stopPropagation(); dismissNotification(n.id) }}
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </button>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-        </form>
-    <div className="hidden sm:flex items-center gap-2 ml-auto">
+
+          {/* Azioni desktop a destra */}
+          <div className="hidden sm:flex items-center gap-2 ml-auto">
           {user?.username && (
             <div className="relative" ref={notiRefDesktop}>
       <button onClick={()=>setShowNoti(v=>!v)} className="relative rounded-full p-2 text-gray-700 hover:bg-gray-200" title="Notifiche">
@@ -471,18 +451,18 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
               <BsPersonCircle className="w-6 h-6" />
             </Link>
           )}
+          </div>
+          {/* Logout solo desktop */}
+          <button
+            onClick={() => signOut({ callbackUrl: '/login' })}
+            className="hidden sm:flex rounded-full border bg-white p-2 text-gray-700 hover:bg-gray-100 mt-2 sm:mt-0"
+            title={t.logout}
+            aria-label={t.logout}
+          >
+            <BsBoxArrowRight className="w-6 h-6" />
+          </button>
         </div>
-        {/* Logout solo su desktop, su mobile è nel burger menu */}
-        <button
-          onClick={() => signOut({ callbackUrl: '/login' })}
-          className="hidden sm:flex rounded-full border bg-white p-2 text-gray-700 hover:bg-gray-100 mt-2 sm:mt-0"
-          title={t.logout}
-          aria-label={t.logout}
-        >
-          <BsBoxArrowRight className="w-6 h-6" />
-        </button>
-      </div>
-  {q.trim().length > 0 && results && (
+        {q.trim().length > 0 && results && (
         <div className="mt-3 rounded-2xl border bg-white p-3">
           {Array.isArray(results.users) && Array.isArray(results.posts) ? (
             (results.users.length > 0 || results.posts.length > 0) ? (
@@ -511,7 +491,82 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
             <div className="text-center text-red-500">{t.error}</div>
           )}
         </div>
+        )}
+      </header>
+
+  {/* Spazio per la bottom bar su mobile */}
+  <div className="sm:hidden h-20" aria-hidden />
+
+      {/* Bottom navigation mobile */}
+      <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-20">
+        <div className="relative mx-auto max-w-screen-sm">
+          <div className="h-20 rounded-t-3xl bg-gradient-to-r from-indigo-400 to-purple-400 text-white px-8 flex items-center justify-between shadow-2xl">
+            {/* Home */}
+            <button
+              className="p-2 rounded-full hover:bg-white/10"
+              aria-label="Home"
+              onClick={() => router.push('/')}
+            >
+              <BsHouseDoor className="w-6 h-6" />
+            </button>
+
+            {/* Profile */}
+            <button
+              className="p-2 rounded-full hover:bg-white/10"
+              aria-label={t.profile}
+              onClick={() => user?.username && router.push(`/profile/${user.username}`)}
+            >
+              <BsPersonCircle className="w-6 h-6" />
+            </button>
+
+            {/* Plus floating */}
+            <div className="absolute left-1/2 -top-8 -translate-x-1/2">
+              <button
+                aria-label="Nuovo post"
+                onClick={() => setShowComposer(true)}
+                className="h-16 w-16 rounded-full bg-white text-blue-700 shadow-xl ring-8 ring-white flex items-center justify-center"
+              >
+                <BsPlusLg className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Chat placeholder */}
+            <button
+              className="p-2 rounded-full hover:bg-white/10"
+              aria-label="Messaggi"
+              onClick={() => { /* placeholder for future chat */ }}
+            >
+              <BsChatDots className="w-6 h-6" />
+            </button>
+
+            {/* Logout */}
+            <button
+              className="p-2 rounded-full hover:bg-white/10"
+              aria-label={t.logout}
+              onClick={() => signOut({ callbackUrl: '/login' })}
+            >
+              <BsBoxArrowRight className="w-6 h-6" />
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Modal composer */}
+      {showComposer && (
+        <div className="fixed inset-0 z-30 flex items-end sm:items-center justify-center bg-black/40" onClick={() => setShowComposer(false)}>
+          <div className="w-full sm:max-w-xl sm:rounded-2xl bg-white p-3 sm:p-4" onClick={(e)=>e.stopPropagation()}>
+            <div className="flex items-center justify-between pb-2 border-b">
+              <h3 className="font-semibold">{t.posts}</h3>
+              <button aria-label="Chiudi" className="p-2 rounded hover:bg-gray-100" onClick={()=>setShowComposer(false)}>
+                <BsX className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="pt-3">
+              <NewPost />
+            </div>
+          </div>
+        </div>
       )}
-    </header>
+    </>
   )
 }
