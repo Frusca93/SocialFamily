@@ -261,10 +261,10 @@ function InlineMentionSuggestions({ query, onPick }: { query: string; onPick: (u
     let active = true
     const run = async () => {
       try {
-        const res = await fetch('/api/friends?q=' + encodeURIComponent(query || ''))
+  const res = await fetch('/api/friends?q=' + encodeURIComponent(query || ''), { cache: 'no-store' })
         let users = await res.json().catch(() => [])
         if ((!Array.isArray(users) || users.length === 0) && (query || '').length >= 2) {
-          const r2 = await fetch('/api/search?q=' + encodeURIComponent(query))
+          const r2 = await fetch('/api/search?q=' + encodeURIComponent(query), { cache: 'no-store' })
           const j2 = await r2.json().catch(() => ({ users: [] }))
           users = j2.users || []
         }
@@ -330,7 +330,7 @@ function InlineComments({ postId, onReplyPosted }: { postId: string; onReplyPost
       }
     }
     load()
-    timer = setInterval(load, 3000)
+  timer = setInterval(load, 5000)
     return () => clearInterval(timer)
   }, [postId])
 

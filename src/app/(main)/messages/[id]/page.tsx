@@ -11,8 +11,8 @@ export default async function ChatPage({ params }: { params: { id: string } }) {
     return <div className="p-6">Devi effettuare il login</div>
   }
   return (
-    <div className="flex h-[calc(100vh-56px-64px)] flex-col rounded-2xl border bg-white">{/* 56 header approx, 64 bottom nav */}
-      <div className="safe-pt sticky top-0 z-10 flex items-center justify-between gap-2 border-b bg-white px-2 py-2">
+    <div className="flex flex-col rounded-2xl border bg-white">
+      <div className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b bg-white px-2 py-2">
         <Link href="/messages" className="rounded-full p-2 hover:bg-gray-100" aria-label="Indietro">
           ←
         </Link>

@@ -37,12 +37,8 @@ export const authOptions: NextAuthOptions = {
         token.username = (user as any).username;
         token.language = (user as any).language;
       } else if (token.id) {
-        // Aggiorna sempre username e language dal db se già loggato
-        const dbUser = await prisma.user.findUnique({ where: { id: token.id as string } })
-        if (dbUser) {
-          token.username = dbUser.username;
-          token.language = dbUser.language;
-        }
+        // Evita query DB ad ogni richiesta: usa i valori già nel token
+        // Se necessario aggiornare, farlo esplicitamente dopo salvataggi profilo
       }
       return token;
     },
