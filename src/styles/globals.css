@@ -3,3 +3,14 @@
 @tailwind utilities;
 
 html, body { height: 100%; }
+
+/* Safe area helpers for notched devices */
+:root {
+	--safe-top: env(safe-area-inset-top);
+	--safe-bottom: env(safe-area-inset-bottom);
+}
+.safe-pt { padding-top: max(env(safe-area-inset-top), 0px); }
+.safe-pb { padding-bottom: max(env(safe-area-inset-bottom), 0px); }
+
+/* Reserve space for bottom nav (approx 80px) + safe area on mobile pages */
+.pb-bnav { padding-bottom: calc(5.5rem + env(safe-area-inset-bottom)); }

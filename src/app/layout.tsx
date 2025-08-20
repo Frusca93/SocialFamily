@@ -26,9 +26,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <link rel="icon" type="image/png" sizes="32x32" href="/logo2.png" />
         <meta property="og:image" content="/logo2.png" />
   <meta name="theme-color" content="#7c3aed" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <title>SocialFamily</title>
       </head>
-      <body className="min-h-screen bg-gray-50 text-gray-900">
+  <body className="min-h-screen bg-gray-50 text-gray-900 safe-pt safe-pb">
         <SessionProvider>
           <SocketProvider>
             <LanguageProvider>{children}</LanguageProvider>

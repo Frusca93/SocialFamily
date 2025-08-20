@@ -71,5 +71,24 @@ export async function POST(req: Request) {
       }
     }
   } catch {}
+  // Notifiche menzioni nel commento
+  try {
+    const usernames = Array.from(new Set((content.match(/@([a-zA-Z0-9_]+)/g) || []).map((s: string) => s.slice(1))));
+    if (usernames.length) {
+      const users = await prisma.user.findMany({ where: { username: { in: usernames } }, select: { id: true } });
+      await Promise.all(users
+        .filter(u => u.id !== (session.user as any).id)
+        .map(u => prisma.notification.create({
+          data: {
+            userId: u.id,
+            type: 'mention',
+            postId,
+            fromUserId: (session.user as any).id,
+            message: `${(session.user as any).name || 'Qualcuno'} ti ha menzionato in un commento`,
+          }
+        }))
+      );
+    }
+  } catch {}
   return Response.json(comment)
 }

@@ -104,6 +104,25 @@ export async function POST(req: Request) {
       data: { content, mediaUrl, mediaType, authorId: (session.user as any).id },
       include: { author: true, _count: true, likes: true }
     });
+    // Mentions notifications: find @username tokens in content
+    try {
+      const usernames = Array.from(new Set((content.match(/@([a-zA-Z0-9_]+)/g) || []).map((s: string) => s.slice(1))));
+      if (usernames.length) {
+        const users = await prisma.user.findMany({ where: { username: { in: usernames } }, select: { id: true } });
+        await Promise.all(users
+          .filter(u => u.id !== (session.user as any).id)
+          .map(u => prisma.notification.create({
+            data: {
+              userId: u.id,
+              type: 'mention',
+              postId: post.id,
+              fromUserId: (session.user as any).id,
+              message: `${(session.user as any).name || 'Qualcuno'} ti ha menzionato in un post`,
+            }
+          }))
+        );
+      }
+    } catch {}
   // Socket.io logic removed
     return Response.json(post)
   } catch (err) {

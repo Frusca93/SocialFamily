@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useRef, useContext } from 'react';
+import { useState, useRef, useContext, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Avatar from './Avatar';
 // Rimossa la logica del dropdown
@@ -8,6 +8,9 @@ import { LanguageContext } from '@/app/LanguageContext';
 
 export default function NewPost() {
   const [content, setContent] = useState('');
+  const [mentionQuery, setMentionQuery] = useState('');
+  const [mentionOpen, setMentionOpen] = useState(false);
+  const [mentionList, setMentionList] = useState<any[]>([]);
   const [mediaType, setMediaType] = useState<'image' | 'video'>('image');
   const [file, setFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
@@ -107,7 +110,7 @@ export default function NewPost() {
       return;
     }
     // fallback: nessun file, solo testo
-    const res = await fetch('/api/posts', {
+  const res = await fetch('/api/posts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ content, mediaType })
@@ -145,12 +148,44 @@ export default function NewPost() {
           {session?.user?.name && (
             <div className="text-xs text-gray-500 mb-1">{t.publishingAs(session.user.name)}</div>
           )}
+          <div className="relative">
           <textarea
             value={content}
-            onChange={e=>setContent(e.target.value)}
+            onChange={e=>{
+              const val = e.target.value;
+              setContent(val);
+              const caret = e.target.selectionStart || val.length;
+              // Trova l'ultima @ aperta senza spazio
+              const upToCaret = val.slice(0, caret);
+              const match = upToCaret.match(/(^|\s)@([a-zA-Z0-9_]{0,20})$/);
+              if (match) {
+                setMentionQuery(match[2] || '');
+                setMentionOpen(true);
+              } else {
+                setMentionOpen(false);
+                setMentionQuery('');
+              }
+            }}
             placeholder={t.placeholder}
             className="w-full resize-y min-h-24 rounded-2xl border px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
           />
+          {mentionOpen && (
+            <MentionSuggestions
+              query={mentionQuery}
+              onPick={(u)=>{
+                // sostituisci l'ultimo token @...
+                const val = content;
+                const caret = (document.activeElement as HTMLTextAreaElement | null)?.selectionStart || val.length;
+                const upToCaret = val.slice(0, caret);
+                const before = upToCaret.replace(/(@[a-zA-Z0-9_]{0,20})$/, `@${u.username} `);
+                const after = val.slice(caret);
+                setContent(before + after);
+                setMentionOpen(false);
+                setMentionQuery('');
+              }}
+            />
+          )}
+          </div>
         </div>
       </div>
 
@@ -198,7 +233,7 @@ export default function NewPost() {
               {t.addMedia}
             </button>
             {showMediaMenu && (
-              <div className="absolute z-10 mt-1 w-40 rounded-xl border bg-white shadow">
+              <div className="absolute z-10 bottom-full right-0 mb-2 w-44 rounded-xl border bg-white shadow">
                 <button
                   type="button"
                   className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
@@ -260,6 +295,49 @@ export default function NewPost() {
         </div>
       </div>
     </form>
+  );
+}
+
+function MentionSuggestions({ query, onPick }: { query: string; onPick: (u: any) => void }) {
+  const [items, setItems] = useState<any[]>([]);
+  useEffect(() => {
+    let active = true;
+    const run = async () => {
+      try {
+        const res = await fetch('/api/friends?q=' + encodeURIComponent(query || ''));
+        const users = await res.json().catch(() => []);
+        if (!active) return;
+        setItems(users);
+      } catch {
+        setItems([]);
+      }
+    };
+    run();
+    return () => { active = false };
+  }, [query]);
+  if (!Array.isArray(items) || items.length === 0) return null;
+  return (
+    <div className="absolute left-2 right-2 -bottom-2 translate-y-full sm:translate-y-0 sm:top-full sm:left-0 sm:right-auto sm:min-w-[14rem] z-20 rounded-xl border bg-white shadow">
+      <ul className="max-h-56 overflow-auto py-1">
+        {items.map(u => (
+          <li key={u.id}>
+            <button
+              type="button"
+              onClick={() => onPick(u)}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 text-left"
+            >
+              {u.image ? (
+                <img src={u.image} alt={u.username} className="h-6 w-6 rounded-full object-cover" />
+              ) : (
+                <span className="h-6 w-6 rounded-full bg-gray-200 inline-block" />
+              )}
+              <span className="font-medium">{u.name || u.username}</span>
+              <span className="text-gray-500">@{u.username}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 

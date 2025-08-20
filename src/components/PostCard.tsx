@@ -64,6 +64,8 @@ export default function PostCard({ post }: { post: any }) {
   const [likes, setLikes] = useState(post._count?.likes ?? 0)
   const [comments, setComments] = useState(post._count?.comments ?? 0)
   const [comment, setComment] = useState('')
+  const [mentionQuery, setMentionQuery] = useState('')
+  const [mentionOpen, setMentionOpen] = useState(false)
   const [showComments, setShowComments] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
   const { data: session } = useSession()
@@ -127,7 +129,9 @@ export default function PostCard({ post }: { post: any }) {
           <div className="text-xs text-gray-500">{new Date(post.createdAt).toLocaleString()}</div>
         </div>
       </header>
-      <p className="whitespace-pre-line">{post.content}</p>
+      <p className="whitespace-pre-line">
+        {renderMentions(post.content)}
+      </p>
       {post.mediaUrl && post.mediaType === 'image' && (
         <img src={post.mediaUrl} alt="immagine" className="mt-3 w-full rounded-xl border" />
       )}
@@ -187,8 +191,30 @@ export default function PostCard({ post }: { post: any }) {
         </div>
         {showLikes && <LikesModal postId={post.id} onClose={() => setShowLikes(false)} />}
       </footer>
-      <form onSubmit={addComment} className="mt-2 flex gap-2">
-        <input value={comment} onChange={e=>setComment(e.target.value)} placeholder={t.writeComment} className="flex-1 rounded-xl border px-3 py-2" />
+      <form onSubmit={addComment} className="mt-2 flex gap-2 relative">
+        <input value={comment} onChange={e=>{
+          const val = e.target.value
+          setComment(val)
+          const caret = e.target.selectionStart || val.length
+          const upToCaret = val.slice(0, caret)
+          const match = upToCaret.match(/(^|\s)@([a-zA-Z0-9_]{0,20})$/)
+          if (match) { setMentionQuery(match[2] || ''); setMentionOpen(true) } else { setMentionOpen(false); setMentionQuery('') }
+        }} placeholder={t.writeComment} className="flex-1 rounded-xl border px-3 py-2" />
+        {mentionOpen && (
+          <InlineMentionSuggestions
+            query={mentionQuery}
+            onPick={(u)=>{
+              const val = comment
+              const caret = val.length
+              const upToCaret = val.slice(0, caret)
+              const before = upToCaret.replace(/(@[a-zA-Z0-9_]{0,20})$/, `@${u.username} `)
+              const after = val.slice(caret)
+              setComment(before + after)
+              setMentionOpen(false)
+              setMentionQuery('')
+            }}
+          />
+        )}
         <button aria-label={t.send} title={t.send} className="rounded-xl border px-3 py-2 flex items-center justify-center text-purple-600 hover:bg-purple-50">
           <IoSend className="w-5 h-5" />
         </button>
@@ -215,6 +241,59 @@ function getYouTubeEmbedUrl(url: string) {
   }
   // fallback: restituisce l'url originale
   return url
+}
+
+function renderMentions(text: string) {
+  const parts = text.split(/(@[a-zA-Z0-9_]+)/g);
+  return parts.map((p, i) => {
+    const m = p.match(/^@([a-zA-Z0-9_]+)$/);
+    if (m) {
+      const username = m[1];
+      return <a key={i} href={`/profile/${username}`} className="text-purple-600 hover:underline">@{username}</a>;
+    }
+    return <span key={i}>{p}</span>;
+  });
+}
+
+function InlineMentionSuggestions({ query, onPick }: { query: string; onPick: (u: any) => void }) {
+  const [items, setItems] = useState<any[]>([])
+  useEffect(() => {
+    let active = true
+    const run = async () => {
+      try {
+        const res = await fetch('/api/friends?q=' + encodeURIComponent(query || ''))
+        const users = await res.json().catch(() => [])
+        if (!active) return
+        setItems(users)
+      } catch { setItems([]) }
+    }
+    run();
+    return () => { active = false }
+  }, [query])
+  if (!items.length) return null
+  return (
+    <div className="absolute left-0 right-16 -bottom-2 translate-y-full z-20 rounded-xl border bg-white shadow">
+      <ul className="max-h-56 overflow-auto py-1">
+        {items.map((u:any) => (
+          <li key={u.id}>
+            <button
+              type="button"
+              onClick={() => onPick(u)}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-50 text-left"
+            >
+              {u.image ? (
+                <img src={u.image} alt={u.username} className="h-6 w-6 rounded-full object-cover" />
+              ) : (
+                <span className="h-6 w-6 rounded-full bg-gray-200 inline-block" />
+              )}
+              <span className="font-medium">{u.name || u.username}</span>
+              <span className="text-gray-500">@{u.username}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
 }
 
 function InlineComments({ postId, onReplyPosted }: { postId: string; onReplyPosted: () => void }) {

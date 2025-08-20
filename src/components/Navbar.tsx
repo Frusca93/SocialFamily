@@ -555,9 +555,9 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
 
   {/* rimosso overlay mobile: ora la ricerca appare tra le icone */}
       {/* Bottom navigation mobile */}
-      <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-20">
-        <div className="relative mx-auto max-w-screen-sm">
-          <div className="h-20 rounded-t-3xl bg-gradient-to-r from-indigo-400 to-purple-400 text-white px-8 flex items-center justify-between shadow-2xl">
+    <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-20 safe-pb">
+  <div className="relative mx-auto w-full max-w-screen-sm">
+      <div className="h-20 rounded-t-3xl bg-gradient-to-r from-indigo-400 to-purple-400 text-white px-6 flex items-center justify-between shadow-2xl">
             {/* Home */}
             <button
               className="p-2 rounded-full hover:bg-white/10"
@@ -577,7 +577,7 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
             </button>
 
             {/* Plus floating */}
-      <div className="absolute left-1/2 -top-7 -translate-x-1/2">
+  <div className="absolute left-1/2 -top-7 -translate-x-1/2">
               <button
                 aria-label="Nuovo post"
                 onClick={() => setShowComposer(true)}
