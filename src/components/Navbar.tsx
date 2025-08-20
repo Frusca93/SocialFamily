@@ -96,6 +96,18 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
 
   // Composer modal (mobile + button)
   const [showComposer, setShowComposer] = useState(false)
+  // Mobile search overlay
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchAnimIn, setSearchAnimIn] = useState(false)
+  const searchInputRef = useRef<HTMLInputElement>(null)
+  useEffect(() => {
+    if (searchOpen) {
+      requestAnimationFrame(() => setSearchAnimIn(true));
+      setTimeout(() => searchInputRef.current?.focus(), 120);
+    } else {
+      setSearchAnimIn(false);
+    }
+  }, [searchOpen])
   // Chiudi dropdown se clic fuori (robusto su mobile): usa pointerdown + composedPath
   useEffect(() => {
     const handle = (e: PointerEvent) => {
@@ -207,32 +219,20 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
             <span className="ml-2 text-xl font-bold align-middle" style={{ color: '#1976d2' }}>SocialFamily</span>
           </div>
 
-          {/* Search bar (sempre visibile) + Notifiche su mobile a destra */}
-          <div className="flex items-center gap-2 flex-1">
-            <form onSubmit={onSearch} className="flex flex-1 items-center w-full sm:w-auto">
-              <div className="relative flex-1">
-                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-400">
-                  <BsSearch className="w-5 h-5" />
-                </span>
-                <input
-                  value={q}
-                  onChange={e=>setQ(e.target.value)}
-                  placeholder={t.search}
-                  className="w-full rounded-xl border bg-white pl-10 pr-10 py-2 text-sm"
-                />
-                <button aria-label={t.searchBtn} className="absolute right-1 top-1/2 -translate-y-1/2 p-2 rounded-lg text-gray-600 hover:text-black">
-                  <BsSearch className="w-5 h-5" />
-                </button>
-              </div>
-            </form>
-
-            {/* Notifiche mobile */}
+          {/* Mobile: icone sinistra/destra */}
+          <div className="flex items-center justify-between w-full sm:hidden">
+            <button
+              onClick={() => setSearchOpen(true)}
+              aria-label={t.searchBtn}
+              className="h-10 w-10 rounded-full flex items-center justify-center bg-gradient-to-r from-indigo-400 to-purple-400 text-black shadow"
+              title={t.searchBtn}
+            >
+              <BsSearch className="w-5 h-5" />
+            </button>
             {user?.username && (
-              <div className="relative sm:hidden" ref={notiRefMobile}>
-                <button onClick={()=>setShowNoti(v=>!v)} className="relative rounded-full p-2 hover:bg-gray-200" title="Notifiche">
-                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 text-gray-700">
-                    <BsBell className="w-5 h-5" />
-                  </span>
+              <div className="relative" ref={notiRefMobile}>
+                <button onClick={()=>setShowNoti(v=>!v)} className="relative h-10 w-10 rounded-full flex items-center justify-center bg-gradient-to-r from-indigo-400 to-purple-400 text-black shadow" title="Notifiche">
+                  <BsBell className="w-5 h-5" />
                   {noti.length > 0 && (
                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5">{noti.length}</span>
                   )}
@@ -323,7 +323,6 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                                 }}
                               >{n.message}</button>
                             )}
-                            {/* dismiss manuale per altri tipi */}
                             {n.type !== 'follow-request' && (
                               <button
                                 aria-label="Chiudi notifica"
@@ -343,6 +342,26 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                 )}
               </div>
             )}
+          </div>
+
+          {/* Desktop: barra di ricerca classica */}
+          <div className="hidden sm:flex items-center gap-2 flex-1">
+            <form onSubmit={onSearch} className="flex flex-1 items-center w-full sm:w-auto">
+              <div className="relative flex-1">
+                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-400">
+                  <BsSearch className="w-5 h-5" />
+                </span>
+                <input
+                  value={q}
+                  onChange={e=>setQ(e.target.value)}
+                  placeholder={t.search}
+                  className="w-full rounded-xl border bg-white pl-10 pr-10 py-2 text-sm"
+                />
+                <button aria-label={t.searchBtn} className="absolute right-1 top-1/2 -translate-y-1/2 p-2 rounded-lg text-gray-600 hover:text-black">
+                  <BsSearch className="w-5 h-5" />
+                </button>
+              </div>
+            </form>
           </div>
 
           {/* Azioni desktop a destra */}
@@ -462,7 +481,7 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
             <BsBoxArrowRight className="w-6 h-6" />
           </button>
         </div>
-        {q.trim().length > 0 && results && (
+  {q.trim().length > 0 && results && (
         <div className="mt-3 rounded-2xl border bg-white p-3">
           {Array.isArray(results.users) && Array.isArray(results.posts) ? (
             (results.users.length > 0 || results.posts.length > 0) ? (
@@ -493,6 +512,31 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
         </div>
         )}
       </header>
+
+      {/* Search overlay mobile con animazione leggera */}
+      {searchOpen && (
+        <div className="sm:hidden fixed top-0 left-0 right-0 z-30" onClick={() => { setSearchAnimIn(false); setTimeout(()=>setSearchOpen(false), 180); }}>
+          <div className={`bg-white/95 backdrop-blur shadow p-2 ${searchAnimIn ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-3'} transition-all duration-200`} onClick={(e)=>e.stopPropagation()}>
+            <form onSubmit={(e)=>{ onSearch(e); setSearchAnimIn(false); setTimeout(()=>setSearchOpen(false), 180); }} className="flex items-center">
+              <div className="relative flex-1">
+                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-black">
+                  <BsSearch className="w-5 h-5" />
+                </span>
+                <input
+                  ref={searchInputRef}
+                  value={q}
+                  onChange={e=>setQ(e.target.value)}
+                  placeholder={t.search}
+                  className="w-full rounded-xl border bg-white pl-10 pr-10 py-2 text-sm"
+                />
+                <button aria-label="Chiudi ricerca" type="button" className="absolute right-1 top-1/2 -translate-y-1/2 p-2 rounded-lg text-gray-600 hover:text-black" onClick={() => { setSearchAnimIn(false); setTimeout(()=>setSearchOpen(false), 180); }}>
+                  <BsX className="w-5 h-5" />
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
   {/* Spazio per la bottom bar su mobile */}
   <div className="sm:hidden h-20" aria-hidden />
