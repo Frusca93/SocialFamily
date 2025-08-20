@@ -10,10 +10,10 @@ type ConversationListItem = {
   unread?: number
 }
 
-export default function MessagesClient() {
+export default function MessagesClient({ initialItems = [] as ConversationListItem[] }: { initialItems?: ConversationListItem[] }) {
   const [q, setQ] = useState('')
   const [loading, setLoading] = useState(false)
-  const [items, setItems] = useState<ConversationListItem[]>([])
+  const [items, setItems] = useState<ConversationListItem[]>(initialItems)
   const [pickerOpen, setPickerOpen] = useState(false)
   const [pickerQ, setPickerQ] = useState('')
   const [pickerUsers, setPickerUsers] = useState<Array<{ id: string; name?: string | null; username?: string | null; image?: string | null }>>([])

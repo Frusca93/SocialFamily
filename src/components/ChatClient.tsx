@@ -54,6 +54,7 @@ export default function ChatClient({ conversationId }: { conversationId: string 
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(true)
   const sendingRef = useRef<Set<string>>(new Set())
+  const listRef = useAutoScroll(messages.length)
 
   const load = useCallback(async () => {
     const r = await fetch(`/api/messages/${conversationId}`)
@@ -104,11 +105,9 @@ export default function ChatClient({ conversationId }: { conversationId: string 
     }
   }, [conversationId, input, me])
 
-  const listRef = useAutoScroll(messages.length)
-
   return (
-    <>
-      <div ref={listRef} className="flex-1 overflow-y-auto p-3">
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div ref={listRef} className="min-h-0 flex-1 overflow-y-auto p-3">
         {loading && messages.length === 0 ? (
           <div className="p-2 text-sm text-gray-500">Caricamento…</div>
         ) : (
@@ -119,7 +118,7 @@ export default function ChatClient({ conversationId }: { conversationId: string 
           </div>
         )}
       </div>
-      <div className="safe-pb sticky bottom-0 flex items-center gap-2 border-t bg-white p-2">
+      <div className="safe-pb sticky bottom-0 z-10 flex items-center gap-2 border-t bg-white p-2">
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -133,7 +132,7 @@ export default function ChatClient({ conversationId }: { conversationId: string 
           Invia
         </button>
       </div>
-    </>
+    </div>
   )
 }
 
