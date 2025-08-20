@@ -53,6 +53,7 @@ export default function ChatClient({ conversationId }: { conversationId: string 
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(true)
+  const sendingRef = useRef<Set<string>>(new Set())
 
   const load = useCallback(async () => {
     const r = await fetch(`/api/messages/${conversationId}`)
@@ -74,7 +75,9 @@ export default function ChatClient({ conversationId }: { conversationId: string 
     if (!text) return
     setInput('')
     // optimistic
-    const temp: Message = { id: 'temp-' + Date.now(), content: text, createdAt: new Date().toISOString(), senderId: me || 'me' }
+    const tempId = 'temp-' + Date.now()
+    const temp: Message = { id: tempId, content: text, createdAt: new Date().toISOString(), senderId: me || 'me' }
+    sendingRef.current.add(tempId)
     setMessages((prev) => [...prev, temp])
     const r = await fetch(`/api/messages/${conversationId}`, {
       method: 'POST',
@@ -83,10 +86,21 @@ export default function ChatClient({ conversationId }: { conversationId: string 
     })
     if (!r.ok) {
       // rollback basic
-      setMessages((prev) => prev.filter((m) => m.id !== temp.id))
+      setMessages((prev) => prev.filter((m) => m.id !== tempId))
+      sendingRef.current.delete(tempId)
     } else {
       const j = await r.json()
-      setMessages((prev) => prev.map((m) => (m.id === temp.id ? j.message : m)))
+      setMessages((prev) => {
+        // remove temp and add server message if not already present
+        const withoutTemp = prev.filter((m) => m.id !== tempId)
+        if (!withoutTemp.some((m) => m.id === j.message.id)) {
+          withoutTemp.push(j.message)
+        }
+        return withoutTemp
+      })
+      sendingRef.current.delete(tempId)
+      // Ensure we reconcile with server state to avoid race with polling
+      try { await load() } catch {}
     }
   }, [conversationId, input, me])
 

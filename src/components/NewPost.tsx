@@ -157,7 +157,7 @@ export default function NewPost() {
               const caret = e.target.selectionStart || val.length;
               // Trova l'ultima @ aperta senza spazio
               const upToCaret = val.slice(0, caret);
-              const match = upToCaret.match(/(^|\s)@([a-zA-Z0-9_]{0,20})$/);
+              const match = upToCaret.match(/@([a-zA-Z0-9_]{0,20})$/);
               if (match) {
                 setMentionQuery(match[2] || '');
                 setMentionOpen(true);
@@ -305,7 +305,13 @@ function MentionSuggestions({ query, onPick }: { query: string; onPick: (u: any)
     const run = async () => {
       try {
         const res = await fetch('/api/friends?q=' + encodeURIComponent(query || ''));
-        const users = await res.json().catch(() => []);
+        let users = await res.json().catch(() => []);
+        if ((!Array.isArray(users) || users.length === 0) && (query || '').length >= 2) {
+          // fallback globale se non ci sono amici che matchano
+          const r2 = await fetch('/api/search?q=' + encodeURIComponent(query));
+          const j2 = await r2.json().catch(() => ({ users: [] }));
+          users = j2.users || [];
+        }
         if (!active) return;
         setItems(users);
       } catch {
@@ -317,7 +323,7 @@ function MentionSuggestions({ query, onPick }: { query: string; onPick: (u: any)
   }, [query]);
   if (!Array.isArray(items) || items.length === 0) return null;
   return (
-    <div className="absolute left-2 right-2 -bottom-2 translate-y-full sm:translate-y-0 sm:top-full sm:left-0 sm:right-auto sm:min-w-[14rem] z-20 rounded-xl border bg-white shadow">
+    <div className="absolute left-2 right-2 -bottom-2 translate-y-full sm:translate-y-0 sm:top-full sm:left-0 sm:right-auto sm:min-w-[14rem] z-50 rounded-xl border bg-white shadow">
       <ul className="max-h-56 overflow-auto py-1">
         {items.map(u => (
           <li key={u.id}>

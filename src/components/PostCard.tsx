@@ -197,7 +197,7 @@ export default function PostCard({ post }: { post: any }) {
           setComment(val)
           const caret = e.target.selectionStart || val.length
           const upToCaret = val.slice(0, caret)
-          const match = upToCaret.match(/(^|\s)@([a-zA-Z0-9_]{0,20})$/)
+          const match = upToCaret.match(/@([a-zA-Z0-9_]{0,20})$/)
           if (match) { setMentionQuery(match[2] || ''); setMentionOpen(true) } else { setMentionOpen(false); setMentionQuery('') }
         }} placeholder={t.writeComment} className="flex-1 rounded-xl border px-3 py-2" />
   {mentionOpen && (
@@ -262,7 +262,12 @@ function InlineMentionSuggestions({ query, onPick }: { query: string; onPick: (u
     const run = async () => {
       try {
         const res = await fetch('/api/friends?q=' + encodeURIComponent(query || ''))
-        const users = await res.json().catch(() => [])
+        let users = await res.json().catch(() => [])
+        if ((!Array.isArray(users) || users.length === 0) && (query || '').length >= 2) {
+          const r2 = await fetch('/api/search?q=' + encodeURIComponent(query))
+          const j2 = await r2.json().catch(() => ({ users: [] }))
+          users = j2.users || []
+        }
         if (!active) return
         setItems(users)
       } catch { setItems([]) }
@@ -272,7 +277,7 @@ function InlineMentionSuggestions({ query, onPick }: { query: string; onPick: (u
   }, [query])
   if (!items.length) return null
   return (
-    <div className="absolute left-0 right-16 bottom-full mb-2 z-40 rounded-xl border bg-white shadow">
+    <div className="absolute left-0 right-16 bottom-full mb-2 z-50 rounded-xl border bg-white shadow">
       <ul className="max-h-56 overflow-auto py-1">
         {items.map((u:any) => (
           <li key={u.id}>
