@@ -89,10 +89,12 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
   // Auto-refresh notifications every 3s
   useEffect(() => {
     if (!user?.id) return;
-    const id = setInterval(() => {
-      fetch('/api/notifications', { cache: 'no-store' }).then(r=>r.json()).then(setNoti).catch(()=>{})
-    }, 3000);
-    return () => clearInterval(id);
+    const tick = () => { if (!document.hidden) fetch('/api/notifications', { cache: 'no-store' }).then(r=>r.json()).then(setNoti).catch(()=>{}) }
+    tick()
+    const id = setInterval(tick, 6000);
+    const onVis = () => { if (!document.hidden) tick() }
+    document.addEventListener('visibilitychange', onVis)
+    return () => { clearInterval(id); document.removeEventListener('visibilitychange', onVis) }
   }, [user?.id])
 
   // Composer modal (mobile + button)
@@ -100,19 +102,22 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
   // Unread messages count for bottom chat icon
   const [unreadMsgs, setUnreadMsgs] = useState(0)
   useEffect(() => {
-    let id: any
-    const load = async () => {
+  let id: any
+  const load = async () => {
       try {
-        const r = await fetch('/api/messages/unread-count', { cache: 'no-store' })
+    const r = await fetch('/api/messages/unread-count', { cache: 'no-store' })
         if (r.ok) {
           const j = await r.json()
           if (typeof j.count === 'number') setUnreadMsgs(j.count)
         }
       } catch {}
     }
-    load()
-    id = setInterval(load, 3000)
-    return () => clearInterval(id)
+  const tick = () => { if (!document.hidden) load() }
+  tick()
+  id = setInterval(tick, 6000)
+  const onVis = () => { if (!document.hidden) tick() }
+  document.addEventListener('visibilitychange', onVis)
+  return () => { clearInterval(id); document.removeEventListener('visibilitychange', onVis) }
   }, [])
   // Mobile search overlay
   const [searchOpen, setSearchOpen] = useState(false)

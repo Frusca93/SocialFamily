@@ -26,7 +26,7 @@ function useAutoScroll(dep: any) {
 export function ChatHeader({ conversationId }: { conversationId: string }) {
   const [data, setData] = useState<HeaderData | null>(null)
   const load = useCallback(async () => {
-    const r = await fetch(`/api/messages/${conversationId}`)
+  const r = await fetch(`/api/messages/${conversationId}`, { cache: 'no-store' })
     if (!r.ok) return
     const j = await r.json()
     setData({ other: j.other })
@@ -39,7 +39,7 @@ export function ChatHeader({ conversationId }: { conversationId: string }) {
     <div className="flex items-center gap-2">
       {data?.other?.image ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={data.other.image || ''} alt={title} className="h-8 w-8 rounded-full object-cover" />
+        <img loading="lazy" src={data.other.image || ''} alt={title} className="h-8 w-8 rounded-full object-cover" />
       ) : (
         <span className="h-8 w-8 rounded-full bg-gray-200" />
       )}
@@ -57,7 +57,7 @@ export default function ChatClient({ conversationId }: { conversationId: string 
   const listRef = useAutoScroll(messages.length)
 
   const load = useCallback(async () => {
-    const r = await fetch(`/api/messages/${conversationId}`)
+    const r = await fetch(`/api/messages/${conversationId}`, { cache: 'no-store' })
     if (!r.ok) return
     const j = await r.json()
     setMessages(j.messages || [])
@@ -66,9 +66,13 @@ export default function ChatClient({ conversationId }: { conversationId: string 
   }, [conversationId])
 
   useEffect(() => {
-    load()
-    const id = setInterval(load, 2500)
-    return () => clearInterval(id)
+    let id: any
+    const tick = () => { if (!document.hidden) load() }
+    tick()
+    id = setInterval(tick, 4000)
+    const onVis = () => { if (!document.hidden) load() }
+    document.addEventListener('visibilitychange', onVis)
+    return () => { clearInterval(id); document.removeEventListener('visibilitychange', onVis) }
   }, [load])
 
   const onSend = useCallback(async () => {

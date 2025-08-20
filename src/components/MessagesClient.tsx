@@ -18,11 +18,16 @@ export default function MessagesClient({ initialItems = [] as ConversationListIt
   const [pickerQ, setPickerQ] = useState('')
   const [pickerUsers, setPickerUsers] = useState<Array<{ id: string; name?: string | null; username?: string | null; image?: string | null }>>([])
   const pickerRef = useRef<HTMLDivElement | null>(null)
+  const ctrlRef = useRef<AbortController | null>(null)
 
   const load = useCallback(async () => {
     try {
       setLoading(true)
-      const r = await fetch('/api/messages' + (q ? `?q=${encodeURIComponent(q)}` : ''))
+      // Annulla la richiesta precedente per evitare sovrapposizioni
+      ctrlRef.current?.abort()
+      const ctrl = new AbortController()
+      ctrlRef.current = ctrl
+      const r = await fetch('/api/messages' + (q ? `?q=${encodeURIComponent(q)}` : ''), { signal: ctrl.signal, cache: 'no-store' })
       if (!r.ok) throw new Error('Failed to load')
       const data = await r.json()
       setItems(data)
@@ -34,9 +39,13 @@ export default function MessagesClient({ initialItems = [] as ConversationListIt
   }, [q])
 
   useEffect(() => {
-    load()
-    const id = setInterval(load, 3000)
-    return () => clearInterval(id)
+    let id: any
+    const tick = () => { if (!document.hidden) load() }
+    tick()
+    id = setInterval(tick, 5000)
+    const onVis = () => { if (!document.hidden) load() }
+    document.addEventListener('visibilitychange', onVis)
+    return () => { clearInterval(id); document.removeEventListener('visibilitychange', onVis) }
   }, [load])
 
   const openPicker = useCallback(() => {
@@ -47,7 +56,7 @@ export default function MessagesClient({ initialItems = [] as ConversationListIt
     if (!pickerOpen) return
     const id = setTimeout(async () => {
       const q = pickerQ.trim()
-      const r = await fetch('/api/search' + (q ? `?q=${encodeURIComponent(q)}` : ''))
+  const r = await fetch('/api/search' + (q ? `?q=${encodeURIComponent(q)}` : ''), { cache: 'no-store' })
       const j = await r.json().catch(() => ({ users: [] }))
       setPickerUsers(j.users || [])
     }, 200)
@@ -103,7 +112,7 @@ export default function MessagesClient({ initialItems = [] as ConversationListIt
                   <button key={u.id} className="flex w-full items-center gap-3 p-3 text-left hover:bg-gray-50" onClick={() => startConversation(u.username)}>
                     {u.image ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={u.image || ''} alt={u.username || ''} className="h-10 w-10 rounded-full object-cover" />
+                      <img loading="lazy" src={u.image || ''} alt={u.username || ''} className="h-10 w-10 rounded-full object-cover" />
                     ) : (
                       <span className="h-10 w-10 rounded-full bg-gray-200" />
                     )}
