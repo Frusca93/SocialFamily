@@ -212,7 +212,7 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
 
   return (
     <>
-  <header className="sticky top-0 z-10 bg-transparent sm:bg-gray-50/80 py-1.5 px-2 sm:px-4 backdrop-blur border-b border-black/5 sm:border-transparent shadow-sm sm:shadow-none">
+  <header className="sticky top-0 z-10 bg-transparent sm:bg-gray-50/80 py-1 sm:py-1.5 px-2 sm:px-4 backdrop-blur border-b border-black/5 sm:border-transparent shadow-sm sm:shadow-none">
         <div className="flex items-center gap-2 sm:gap-3 w-full">
           {/* Logo solo desktop */}
           <div className="hidden sm:flex items-center">
@@ -221,11 +221,11 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
           </div>
 
           {/* Mobile: icone sinistra/destra */}
-          <div className="relative flex items-center justify-between w-full sm:hidden mt-2 mb-2 px-2">
+          <div className="relative flex items-center justify-between w-full sm:hidden mt-1 mb-1 px-2">
             <button
               onClick={() => setSearchOpen(true)}
               aria-label={t.searchBtn}
-              className="h-12 w-12 rounded-full flex items-center justify-center bg-gradient-to-r from-indigo-400/80 to-purple-400/80 text-black ring-1 ring-black/5 shadow-sm"
+              className="h-12 w-12 rounded-full flex items-center justify-center bg-gradient-to-r from-indigo-400/20 to-purple-400/20 text-black ring-1 ring-black/5 shadow-sm"
               title={t.searchBtn}
             >
               <FaSearch className="w-5 h-5" />
@@ -259,7 +259,7 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
             )}
             {user?.username && (
               <div className="relative" ref={notiRefMobile}>
-                <button onClick={()=>setShowNoti(v=>!v)} className="relative h-12 w-12 rounded-full flex items-center justify-center bg-gradient-to-r from-indigo-400/80 to-purple-400/80 text-black ring-1 ring-black/5 shadow-sm" title="Notifiche">
+                <button onClick={()=>setShowNoti(v=>!v)} className="relative h-12 w-12 rounded-full flex items-center justify-center bg-gradient-to-r from-indigo-400/20 to-purple-400/20 text-black ring-1 ring-black/5 shadow-sm" title="Notifiche">
                   <BsBellFill className="w-5 h-5" />
                   {noti.length > 0 && (
                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5">{noti.length}</span>

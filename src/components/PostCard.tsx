@@ -4,6 +4,8 @@ import LikesModal from './LikesModal'
 import { LanguageContext } from '@/app/LanguageContext'
 import { useSession } from 'next-auth/react'
 import DeleteConfirmModal from './DeleteConfirmModal'
+import { RxCross2 } from 'react-icons/rx'
+import { IoSend } from 'react-icons/io5'
 import { FaHeart, FaRegHeart } from 'react-icons/fa'
 import { BsChatDots } from 'react-icons/bs'
 
@@ -103,10 +105,9 @@ export default function PostCard({ post }: { post: any }) {
             onClick={() => setShowDelete(true)}
             className="absolute top-2 right-2 p-2 text-red-600 hover:bg-red-100 rounded-full"
             title={t.delete}
+            aria-label={t.delete}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <RxCross2 className="w-6 h-6" />
           </button>
         )}
       {showDelete && (
@@ -188,7 +189,9 @@ export default function PostCard({ post }: { post: any }) {
       </footer>
       <form onSubmit={addComment} className="mt-2 flex gap-2">
         <input value={comment} onChange={e=>setComment(e.target.value)} placeholder={t.writeComment} className="flex-1 rounded-xl border px-3 py-2" />
-        <button className="rounded-xl border px-3">{t.send}</button>
+        <button aria-label={t.send} title={t.send} className="rounded-xl border px-3 py-2 flex items-center justify-center text-blue-700 hover:bg-blue-50">
+          <IoSend className="w-5 h-5" />
+        </button>
       </form>
 
       {showComments && (

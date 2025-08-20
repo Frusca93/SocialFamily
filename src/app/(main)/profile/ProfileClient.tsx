@@ -2,6 +2,7 @@
 import FollowButton from '@/components/FollowButton';
 import PostCard from '@/components/PostCard';
 import FollowListModal from '@/components/FollowListModal';
+import { FiSettings } from 'react-icons/fi'
 import { LanguageContext } from '@/app/LanguageContext';
 import { useContext, useEffect, useState } from 'react';
 
@@ -90,7 +91,7 @@ export default function ProfileClient({ user, posts, followers, following, isOwn
   return (
     <div className="space-y-4">
       <div className="rounded-2xl border bg-white p-6">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 relative">
           {user.image ? (
             <img src={user.image} alt="avatar" className="h-16 w-16 rounded-full object-cover" />
           ) : (
@@ -105,13 +106,15 @@ export default function ProfileClient({ user, posts, followers, following, isOwn
               <span className="cursor-pointer hover:underline" onClick={() => setShowFollowing(true)}>{followingState.length} {t.following}</span>
             </p>
           </div>
-          <div className="ml-auto">
-            {isOwner ? (
-              <a href="/settings" className="rounded-xl border bg-white px-3 py-2">{t.settings}</a>
-            ) : (
+          {isOwner ? (
+            <a href="/settings" className="absolute top-3 right-3 p-2 rounded-full hover:bg-gray-100" aria-label={t.settings} title={t.settings}>
+              <FiSettings className="w-6 h-6 text-gray-700" />
+            </a>
+          ) : (
+            <div className="ml-auto">
               <FollowButton targetUserId={user.id} initialFollowing={isFollowing} initialRequestStatus={followRequestStatus} />
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
       <div className="space-y-4">
