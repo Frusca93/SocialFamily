@@ -1,26 +1,28 @@
 model Notification {
-  id        String   @id @default(cuid())
-  user      User     @relation("UserNotifications", fields: [userId], references: [id])
-  userId    String
-  type      String   // 'like' | 'comment' | 'follow-request'
-  post      Post?    @relation(fields: [postId], references: [id])
-  postId    String?
-  fromUser  User?    @relation("NotificationFromUser", fields: [fromUserId], references: [id])
+  id         String   @id @default(cuid())
+  user       User     @relation("UserNotifications", fields: [userId], references: [id])
+  userId     String
+  type       String // 'like' | 'comment' | 'follow-request'
+  post       Post?    @relation(fields: [postId], references: [id])
+  postId     String?
+  fromUser   User?    @relation("NotificationFromUser", fields: [fromUserId], references: [id])
   fromUserId String?
-  message   String?
-  createdAt DateTime @default(now())
+  message    String?
+  createdAt  DateTime @default(now())
 }
+
 model FollowRequest {
-  id           String   @id @default(cuid())
-  requester    User     @relation("followRequestsSent", fields: [requesterId], references: [id])
-  requesterId  String
-  target       User     @relation("followRequestsReceived", fields: [targetId], references: [id])
-  targetId     String
-  status       String   // 'pending' | 'approved' | 'declined'
-  createdAt    DateTime @default(now())
+  id          String   @id @default(cuid())
+  requester   User     @relation("followRequestsSent", fields: [requesterId], references: [id])
+  requesterId String
+  target      User     @relation("followRequestsReceived", fields: [targetId], references: [id])
+  targetId    String
+  status      String // 'pending' | 'approved' | 'declined'
+  createdAt   DateTime @default(now())
 
   @@unique([requesterId, targetId])
 }
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -31,41 +33,45 @@ datasource db {
 }
 
 model User {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   name          String
-  username      String   @unique
-  email         String   @unique
-  image         String?  // avatar URL
+  username      String    @unique
+  email         String    @unique
+  image         String? // avatar URL
   bio           String?
-  language      String?   // 'it' | 'fr' | 'en' | 'es'
-  passwordHash  String?  // per credenziali
+  language      String? // 'it' | 'fr' | 'en' | 'es'
+  passwordHash  String? // per credenziali
   emailVerified DateTime?
-  createdAt     DateTime @default(now())
+  createdAt     DateTime  @default(now())
 
-  posts         Post[]
-  comments      Comment[]
-  likes         Like[] @relation("UserLikes")
-  followers     Follow[] @relation("followers")
-  following     Follow[] @relation("following")
+  posts     Post[]
+  comments  Comment[]
+  likes     Like[]    @relation("UserLikes")
+  followers Follow[]  @relation("followers")
+  following Follow[]  @relation("following")
 
   followRequestsSent     FollowRequest[] @relation("followRequestsSent")
   followRequestsReceived FollowRequest[] @relation("followRequestsReceived")
-  notifications         Notification[] @relation("UserNotifications")
-  notificationsFrom      Notification[] @relation("NotificationFromUser")
+  notifications          Notification[]  @relation("UserNotifications")
+  notificationsFrom      Notification[]  @relation("NotificationFromUser")
   tokens                 Token[]
+
+  // Messaging back-relations
+  conversationParticipants ConversationParticipant[] @relation("ConversationParticipantsUser")
+  messagesSent             Message[]                 @relation("MessageSender")
 }
 
 model Post {
-  id        String    @id @default(cuid())
-  content   String
-  mediaUrl  String?
-  mediaType String?   // 'image' | 'video'
-  author    User      @relation(fields: [authorId], references: [id])
-  authorId  String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  likes     Like[]
-  comments  Comment[]
+  id            String         @id @default(cuid())
+  content       String
+  mediaUrl      String?
+  mediaType     String? // 'image' | 'video'
+  author        User           @relation(fields: [authorId], references: [id])
+  authorId      String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  likes         Like[]
+  comments      Comment[]
   notifications Notification[]
 }
 
@@ -81,27 +87,27 @@ model Like {
 }
 
 model Comment {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   postId    String
-  post      Post     @relation(fields: [postId], references: [id])
+  post      Post      @relation(fields: [postId], references: [id])
   content   String
   authorId  String
-  author    User     @relation(fields: [authorId], references: [id])
+  author    User      @relation(fields: [authorId], references: [id])
   image     String?
   // Reply threading
-  parent     Comment?  @relation("CommentToParent", fields: [parentId], references: [id])
-  parentId   String?
-  replies    Comment[] @relation("CommentToParent")
-  createdAt DateTime @default(now())
+  parent    Comment?  @relation("CommentToParent", fields: [parentId], references: [id])
+  parentId  String?
+  replies   Comment[] @relation("CommentToParent")
+  createdAt DateTime  @default(now())
 }
 
 model Follow {
-  id           String   @id @default(cuid())
-  follower     User     @relation("followers", fields: [followerId], references: [id])
-  followerId   String
-  following    User     @relation("following", fields: [followingId], references: [id])
-  followingId  String
-  createdAt    DateTime @default(now())
+  id          String   @id @default(cuid())
+  follower    User     @relation("followers", fields: [followerId], references: [id])
+  followerId  String
+  following   User     @relation("following", fields: [followingId], references: [id])
+  followingId String
+  createdAt   DateTime @default(now())
 
   @@unique([followerId, followingId])
 }
@@ -110,9 +116,38 @@ model Follow {
 model Token {
   id        String   @id @default(cuid())
   token     String   @unique
-  type      String   // 'EMAIL_VERIFY' | 'PASSWORD_RESET'
+  type      String // 'EMAIL_VERIFY' | 'PASSWORD_RESET'
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
   expiresAt DateTime
   createdAt DateTime @default(now())
+}
+
+// Messaging
+model Conversation {
+  id           String                    @id @default(cuid())
+  createdAt    DateTime                  @default(now())
+  updatedAt    DateTime                  @updatedAt
+  participants ConversationParticipant[]
+  messages     Message[]
+}
+
+model ConversationParticipant {
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversationId String
+  user           User         @relation("ConversationParticipantsUser", fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+
+  @@id([conversationId, userId])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversationId String
+  sender         User         @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  senderId       String
+  content        String
+  createdAt      DateTime     @default(now())
+  readAt         DateTime?
 }

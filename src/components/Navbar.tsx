@@ -97,6 +97,23 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
 
   // Composer modal (mobile + button)
   const [showComposer, setShowComposer] = useState(false)
+  // Unread messages count for bottom chat icon
+  const [unreadMsgs, setUnreadMsgs] = useState(0)
+  useEffect(() => {
+    let id: any
+    const load = async () => {
+      try {
+        const r = await fetch('/api/messages/unread-count', { cache: 'no-store' })
+        if (r.ok) {
+          const j = await r.json()
+          if (typeof j.count === 'number') setUnreadMsgs(j.count)
+        }
+      } catch {}
+    }
+    load()
+    id = setInterval(load, 3000)
+    return () => clearInterval(id)
+  }, [])
   // Mobile search overlay
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchAnimIn, setSearchAnimIn] = useState(false)
@@ -589,11 +606,16 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
 
             {/* Chat placeholder */}
             <button
-              className="p-2 rounded-full hover:bg-white/10"
+              className="relative p-2 rounded-full hover:bg-white/10"
               aria-label="Messaggi"
-              onClick={() => { /* placeholder for future chat */ }}
+              onClick={() => router.push('/messages')}
             >
               <BsChatDots className="w-6 h-6" />
+              {unreadMsgs > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5">
+                  {unreadMsgs > 9 ? '9+' : unreadMsgs}
+                </span>
+              )}
             </button>
 
             {/* Logout */}
