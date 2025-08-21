@@ -8,6 +8,7 @@ import { RxCross2 } from 'react-icons/rx'
 import { IoSend } from 'react-icons/io5'
 import { FaHeart, FaRegHeart } from 'react-icons/fa'
 import { BsChatDots } from 'react-icons/bs'
+import ImageLightbox from './ImageLightbox'
 
 const translations = {
   it: {
@@ -108,6 +109,7 @@ export default function PostCard({ post }: { post: any }) {
 
   const [liked, setLiked] = useState(post.liked ?? false);
   const [showLikes, setShowLikes] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   async function toggleLike() {
     const res = await fetch(`/api/posts/${post.id}/like`, { method: 'POST' })
     if (!res.ok) return
@@ -148,6 +150,7 @@ export default function PostCard({ post }: { post: any }) {
   }
 
   return (
+    <>
     <article id={post.id ? `post-${post.id}` : undefined} className="relative rounded-2xl p-[1px] bg-gradient-to-b from-indigo-400 to-purple-400">
       <div className="rounded-2xl bg-white/90 backdrop-blur p-4">
       <header className="mb-2 flex items-center gap-3">
@@ -182,7 +185,9 @@ export default function PostCard({ post }: { post: any }) {
         {renderMentions(post.content)}
       </p>
       {post.mediaUrl && post.mediaType === 'image' && (
-        <img src={post.mediaUrl} alt="immagine" className="mt-3 w-full rounded-xl border" />
+        <button className="mt-3 block group" onClick={()=>setLightboxOpen(true)} aria-label="Apri immagine a schermo intero">
+          <img src={post.mediaUrl} alt="immagine" className="w-full rounded-xl border group-hover:opacity-95 transition" />
+        </button>
       )}
       {post.mediaUrl && post.mediaType === 'video' && (
         isYouTubeUrl(post.mediaUrl)
@@ -280,6 +285,10 @@ export default function PostCard({ post }: { post: any }) {
       )}
       </div>
     </article>
+    {lightboxOpen && post.mediaUrl && post.mediaType === 'image' && (
+      <ImageLightbox src={post.mediaUrl} alt="immagine" onClose={() => setLightboxOpen(false)} />
+    )}
+    </>
   )
 }
 
