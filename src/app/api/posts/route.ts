@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { sendPush } from '@/lib/webpush'
 import { postSchema } from '@/lib/validations'
 import { v2 as cloudinary } from 'cloudinary'
 
@@ -121,6 +122,20 @@ export async function POST(req: Request) {
             }
           }))
         );
+        // Push per le menzioni nel post
+        try {
+          const mentionTargets = users.filter(u => u.id !== (session.user as any).id)
+          for (const u of mentionTargets) {
+            const subs = await (prisma as any).pushSubscription.findMany({ where: { userId: u.id } })
+            await Promise.all(subs.map((s: any) => sendPush({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, {
+              title: 'Sei stato menzionato',
+              body: `${(session.user as any).name || 'Qualcuno'} ti ha menzionato in un post`,
+              url: `/?post=${post.id}`,
+              icon: '/sf_logo.png',
+              badge: '/sf_logo.png'
+            })))
+          }
+        } catch {}
       }
     } catch {}
   // Socket.io logic removed
