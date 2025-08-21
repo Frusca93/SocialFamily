@@ -1,4 +1,5 @@
 "use client";
+import Link from 'next/link';
 import NewPost from '@/components/NewPost';
 import PostCard from '@/components/PostCard';
 import { LanguageContext } from '@/app/LanguageContext';
@@ -18,6 +19,16 @@ const FeedClient = forwardRef(function FeedClient({ posts }: { posts: any[] }, r
   // Mobile search state
   const [q, setQ] = useState('');
   const [results, setResults] = useState<any | null>(null);
+  // Dynamic sticky offset equal to header height
+  const [stickyTop, setStickyTop] = useState<number>(56);
+  useEffect(() => {
+    const el = document.querySelector('header');
+    if (!el) return;
+    const update = () => setStickyTop((el as HTMLElement).getBoundingClientRect().height || 56);
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
   // ...nessuna logica socket...
 
   useImperativeHandle(ref, () => ({
@@ -77,9 +88,9 @@ const FeedClient = forwardRef(function FeedClient({ posts }: { posts: any[] }, r
           {t.explore}
         </h1>
       </div>
-      {/* Mobile search under title (sticky) */}
+      {/* Mobile search under title (sticky under header) */}
       <div className="sm:hidden px-2 -mt-2 mb-0">
-        <div className="sticky top-14 z-10 bg-gray-50/95 backdrop-blur supports-[backdrop-filter]:bg-gray-50/70">
+        <div className="sticky z-[9] bg-gray-50/95 backdrop-blur supports-[backdrop-filter]:bg-gray-50/70" style={{ top: stickyTop }}>
           <div className="relative pb-[10px]">
             <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-500">
             {/* magnifier icon path */}
@@ -105,7 +116,19 @@ const FeedClient = forwardRef(function FeedClient({ posts }: { posts: any[] }, r
                     <h4 className="mb-1 font-semibold">Utenti</h4>
                     <ul className="space-y-1">
                       {results.users.map((u: any) => (
-                        <li key={u.id} className="truncate">@{u.username}</li>
+                        <li key={u.id}>
+                          <Link href={`/profile/${u.username}`} className="flex items-center gap-3 rounded-lg px-2 py-1.5 hover:bg-gray-50">
+                            {u.image ? (
+                              <img src={u.image} alt={u.name || u.username} className="h-8 w-8 rounded-full object-cover" />
+                            ) : (
+                              <div className="h-8 w-8 rounded-full bg-gray-200" />
+                            )}
+                            <div className="min-w-0">
+                              <div className="text-sm font-medium truncate">{u.name || u.username}</div>
+                              <div className="text-xs text-gray-500 truncate">@{u.username}</div>
+                            </div>
+                          </Link>
+                        </li>
                       ))}
                     </ul>
                   </div>
