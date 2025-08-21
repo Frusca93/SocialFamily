@@ -518,6 +518,18 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
             </div>
           )}
           {user?.username && (
+            <Link href="/messages" className="relative rounded-full p-2 text-gray-700 hover:bg-gray-200" title="Messaggi" aria-label="Messaggi">
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-300">
+                <BsChatDots className="w-5 h-5" />
+              </span>
+              {unreadMsgs > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5">
+                  {unreadMsgs > 9 ? '9+' : unreadMsgs}
+                </span>
+              )}
+            </Link>
+          )}
+          {user?.username && (
             <Link href={`/profile/${user.username}`} className="rounded-full p-2 border bg-white text-gray-700 hover:bg-gray-100" title={t.profile} aria-label={t.profile}>
               <BsPersonCircle className="w-6 h-6" />
             </Link>
