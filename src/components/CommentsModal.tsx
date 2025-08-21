@@ -2,6 +2,9 @@
 
 "use client"
 import React, { useEffect, useRef, useContext } from "react"
+import { useSession } from 'next-auth/react'
+import { AiFillHeart, AiOutlineHeart } from 'react-icons/ai'
+import { FiTrash2 } from 'react-icons/fi'
 import { LanguageContext } from '@/app/LanguageContext'
 
 const translations = {
@@ -52,6 +55,27 @@ export default function CommentsModal({ postId, onClose }: { postId: string, onC
   const modalRef = useRef<HTMLDivElement>(null)
   const { lang } = useContext(LanguageContext);
   const t = translations[lang as keyof typeof translations] || translations.it;
+  const { data: session } = useSession()
+
+  const refresh = async () => {
+    const r = await fetch(`/api/comments?postId=${encodeURIComponent(postId)}` , { cache: 'no-store' })
+    if (r.ok) setComments(await r.json())
+  }
+
+  const toggleLike = async (commentId: string) => {
+    const res = await fetch(`/api/comments/${commentId}/like`, { method: 'POST' })
+    if (res.ok) {
+      const data = await res.json().catch(() => null)
+      setComments(prev => prev.map(c => c.id === commentId ? { ...c, myLiked: data?.liked ?? !c.myLiked, likesCount: data?.likesCount ?? (c.myLiked ? Math.max(0, (c.likesCount||0)-1) : (c.likesCount||0)+1) } : c))
+    }
+  }
+
+  const canDelete = (c: any) => (session?.user as any)?.id && c.authorId === (session?.user as any)?.id
+  const onDelete = async (commentId: string) => {
+    if (!confirm('Eliminare il commento?')) return
+    const res = await fetch(`/api/comments?commentId=${encodeURIComponent(commentId)}`, { method: 'DELETE' })
+    if (res.ok) await refresh()
+  }
 
   useEffect(() => {
     async function fetchComments() {
@@ -109,7 +133,23 @@ export default function CommentsModal({ postId, onClose }: { postId: string, onC
                       <div className="text-sm text-gray-700">{c.content}</div>
                       <div className="text-xs text-gray-400">{c.createdAt ? new Date(c.createdAt).toLocaleString() : ''}</div>
                     </div>
-                    <button className="text-xs text-blue-600 hover:underline" onClick={() => { setReplyFor(c.id); setReplyText('') }}>{t.reply}</button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => toggleLike(c.id)}
+                        className={`px-2 py-0.5 rounded-full border text-xs flex items-center gap-1 ${c.myLiked ? 'border-purple-500 text-purple-600' : 'border-purple-300 text-purple-500'}`}
+                        style={{ borderWidth: 0.5 }}
+                        aria-label="Mi piace"
+                      >
+                        {c.myLiked ? <AiFillHeart className="text-purple-600" /> : <AiOutlineHeart className="text-purple-500" />}
+                        <span>{c.likesCount || 0}</span>
+                      </button>
+                      <button className="text-xs text-blue-600 hover:underline" onClick={() => { setReplyFor(c.id); setReplyText('') }}>{t.reply}</button>
+                      {canDelete(c) && (
+                        <button className="text-xs text-red-600 hover:text-red-700 flex items-center gap-1" onClick={() => onDelete(c.id)} aria-label="Elimina commento">
+                          <FiTrash2 />
+                        </button>
+                      )}
+                    </div>
                   </div>
                   {replyFor === c.id && (
                     <form
@@ -143,7 +183,23 @@ export default function CommentsModal({ postId, onClose }: { postId: string, onC
                           <div className="text-sm text-gray-700">{rc.content}</div>
                           <div className="text-xs text-gray-400">{rc.createdAt ? new Date(rc.createdAt).toLocaleString() : ''}</div>
                         </div>
-                        <button className="text-[11px] text-blue-600 hover:underline" onClick={() => { setReplyFor(rc.id); setReplyText('') }}>{t.reply}</button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => toggleLike(rc.id)}
+                            className={`px-2 py-0.5 rounded-full border text-[11px] flex items-center gap-1 ${rc.myLiked ? 'border-purple-500 text-purple-600' : 'border-purple-300 text-purple-500'}`}
+                            style={{ borderWidth: 0.5 }}
+                            aria-label="Mi piace"
+                          >
+                            {rc.myLiked ? <AiFillHeart className="text-purple-600" /> : <AiOutlineHeart className="text-purple-500" />}
+                            <span>{rc.likesCount || 0}</span>
+                          </button>
+                          <button className="text-[11px] text-blue-600 hover:underline" onClick={() => { setReplyFor(rc.id); setReplyText('') }}>{t.reply}</button>
+                          {canDelete(rc) && (
+                            <button className="text-[11px] text-red-600 hover:text-red-700 flex items-center gap-1" onClick={() => onDelete(rc.id)} aria-label="Elimina commento">
+                              <FiTrash2 />
+                            </button>
+                          )}
+                        </div>
                       </div>
                       {replyFor === rc.id && (
                         <form

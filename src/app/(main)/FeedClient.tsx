@@ -123,8 +123,9 @@ const FeedClient = forwardRef(function FeedClient({ posts }: { posts: any[] }, r
         <div style={{ height: affix ? searchH + 10 : 0 }} />
         {/* In-flow box (shown when not affixed) */}
         {!affix && (
+          <div className="mx-auto w-full max-w-screen-sm">
           <div className="relative pb-[10px]" data-role="search-box">
-            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-500">
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
               {/* magnifier icon path */}
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
                 <circle cx="11" cy="11" r="7"></circle>
@@ -135,7 +136,7 @@ const FeedClient = forwardRef(function FeedClient({ posts }: { posts: any[] }, r
               ref={inputRef}
               value={q}
               onChange={(e)=>setQ(e.target.value)}
-              placeholder={t.explore}
+              placeholder={"trova i tuoi amici"}
               className="w-full rounded-full border bg-white pl-9 pr-10 py-2 text-[16px] shadow"
             />
             {q && (
@@ -150,35 +151,38 @@ const FeedClient = forwardRef(function FeedClient({ posts }: { posts: any[] }, r
               </button>
             )}
           </div>
+          </div>
         )}
         {/* Fixed box (shown when affixed) */}
         {affix && (
           <div className="fixed left-0 right-0 z-[9] bg-gray-50/95 backdrop-blur supports-[backdrop-filter]:bg-gray-50/70" style={{ top: headerH }}>
-            <div className="relative px-2 pb-[10px]" data-role="search-box">
-              <span className="pointer-events-none absolute inset-y-0 left-5 flex items-center text-gray-500">
+            <div className="mx-auto w-full max-w-screen-sm px-2">
+              <div className="relative pb-[10px]" data-role="search-box">
+                <span className="pointer-events-none absolute left-5 top-1/2 -translate-y-1/2 text-gray-500">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
                   <circle cx="11" cy="11" r="7"></circle>
                   <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
-              </span>
-              <input
-                ref={inputRef}
-                value={q}
-                onChange={(e)=>setQ(e.target.value)}
-                placeholder={t.explore}
-                className="w-full rounded-full border bg-white pl-9 pr-10 py-2 text-[16px] shadow ml-2 mr-2"
-              />
-              {q && (
-                <button
-                  aria-label="Pulisci"
-                  className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full text-gray-600 hover:bg-gray-100"
-                  onClick={() => { setQ(''); inputRef.current?.focus(); }}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              )}
+                </span>
+                <input
+                  ref={inputRef}
+                  value={q}
+                  onChange={(e)=>setQ(e.target.value)}
+                  placeholder={"trova i tuoi amici"}
+                  className="w-full rounded-full border bg-white pl-9 pr-10 py-2 text-[16px] shadow"
+                />
+                {q && (
+                  <button
+                    aria-label="Pulisci"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full text-gray-600 hover:bg-gray-100"
+                    onClick={() => { setQ(''); inputRef.current?.focus(); }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         )}

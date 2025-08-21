@@ -19,17 +19,40 @@ export async function GET(req: Request) {
   const comments = await prisma.comment.findMany({
     where: { postId },
     orderBy: { createdAt: 'asc' },
-    select: {
-      id: true,
-      postId: true,
-      content: true,
-      authorId: true,
-      image: true,
-      createdAt: true,
+    include: {
       author: { select: { name: true, username: true } }
     }
   })
-  return Response.json(comments)
+  try {
+    const session = await getServerSession(authOptions).catch(() => null)
+    const userId = (session?.user as any)?.id as string | undefined
+    const ids = comments.map((c: any) => c.id)
+    const grouped = await (prisma as any).commentLike.groupBy({ by: ['commentId'], _count: { commentId: true }, where: { commentId: { in: ids } } }).catch(() => [])
+    const countsMap = new Map<string, number>(grouped.map((g: any) => [g.commentId, g._count?.commentId || 0]))
+    let mine: any[] = []
+    if (userId) {
+      mine = await (prisma as any).commentLike.findMany({ where: { userId, commentId: { in: ids } }, select: { commentId: true } }).catch(() => [])
+    }
+    const mySet = new Set(mine.map((m: any) => m.commentId))
+    const enriched = comments.map((c: any) => ({ ...c, likesCount: countsMap.get(c.id) || 0, myLiked: mySet.has(c.id) }))
+    return Response.json(enriched)
+  } catch {
+    return Response.json(comments)
+  }
+}
+
+export async function DELETE(req: Request) {
+  const session = await getServerSession(authOptions)
+  if (!session?.user) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const { searchParams } = new URL(req.url)
+  const commentId = searchParams.get('commentId') || ''
+  if (!commentId) return Response.json({ error: 'Missing commentId' }, { status: 400 })
+  const c = await prisma.comment.findUnique({ where: { id: commentId }, include: { replies: { select: { id: true } } } })
+  if (!c) return Response.json({ error: 'Not found' }, { status: 404 })
+  if (c.authorId !== (session.user as any).id) return Response.json({ error: 'Forbidden' }, { status: 403 })
+  if (c.replies && c.replies.length > 0) return Response.json({ error: 'Impossibile eliminare: ha risposte' }, { status: 400 })
+  await prisma.comment.delete({ where: { id: commentId } })
+  return Response.json({ ok: true })
 }
 
 export async function POST(req: Request) {
