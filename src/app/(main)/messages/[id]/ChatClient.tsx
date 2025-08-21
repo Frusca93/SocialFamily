@@ -53,6 +53,8 @@ export default function ChatClient({ conversationId }: { conversationId: string 
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(true)
+  const inputWrapRef = useRef<HTMLDivElement | null>(null)
+  const [inputH, setInputH] = useState(56)
 
   const load = useCallback(async () => {
     const r = await fetch(`/api/messages/${conversationId}`)
@@ -92,9 +94,27 @@ export default function ChatClient({ conversationId }: { conversationId: string 
 
   const listRef = useAutoScroll(messages.length)
 
+  useEffect(() => {
+    const el = inputWrapRef.current
+    if (!el) return
+    const set = () => setInputH(el.offsetHeight || 56)
+    set()
+    let ro: ResizeObserver | null = null
+    const RO = (window as any).ResizeObserver
+    if (typeof RO === 'function') {
+      ro = new RO(() => set())
+      ro.observe(el)
+    } else {
+      const onResize = () => set()
+      window.addEventListener('resize', onResize)
+      return () => window.removeEventListener('resize', onResize)
+    }
+    return () => { if (ro) ro.disconnect() }
+  }, [])
+
   return (
-    <>
-      <div ref={listRef} className="flex-1 overflow-y-auto p-3">
+    <div className="flex h-full min-h-0 flex-1 flex-col">
+      <div ref={listRef} className="min-h-0 flex-1 overflow-y-auto p-3" style={{ paddingBottom: inputH }}>
         {loading && messages.length === 0 ? (
           <div className="p-2 text-sm text-gray-500">Caricamento…</div>
         ) : (
@@ -105,8 +125,7 @@ export default function ChatClient({ conversationId }: { conversationId: string 
           </div>
         )}
       </div>
-  {/* Offset above bottom navbar on mobile */}
-      <div className="safe-pb sticky bottom-[5rem] sm:bottom-0 flex items-end gap-2 border-t bg-white p-2">
+      <div ref={inputWrapRef} className="safe-pb sticky bottom-0 flex items-end gap-2 border-t bg-white p-2">
         <AutoTextarea
           value={input}
           onChange={setInput}
@@ -117,7 +136,7 @@ export default function ChatClient({ conversationId }: { conversationId: string 
           Invia
         </button>
       </div>
-    </>
+    </div>
   )
 }
 
