@@ -17,48 +17,17 @@ export default function FeedPageClient({ posts }: { posts: any[] }) {
       feedRef.current.scrollToPost(postId);
     } else {
       // fallback diretto
-      const el = document.getElementById(`post-${postId}`);
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const el = document.getElementById(`post-${postId}`);
+    if (el) el.scrollIntoView({ block: 'center' });
     }
   };
-  // Auto-scroll when ?post=ID is present or changes
+  // Auto-scroll when ?post=ID is present or changes (no animation)
   const postParam = searchParams?.get('post') ?? null;
   useEffect(() => {
     if (postParam) {
-      // prova più volte: la lista può impiegare un attimo a renderizzare
-      let attempts = 0;
-      const max = 12; // ~2s
-      const tick = () => {
-        attempts++;
-        handleScrollToPost(postParam);
-        if (attempts < max) setTimeout(tick, 150);
-      };
-      setTimeout(tick, 100);
-      // rimuovi il param una volta completato lo scroll o dopo un piccolo delay
-      const cleanTimeout = setTimeout(() => {
-        try {
-          const params = new URLSearchParams(Array.from(searchParams?.entries?.() ?? []));
-          params.delete('post');
-          const qs = params.toString();
-          router.replace(qs ? `${safePathname}?${qs}` : safePathname, { scroll: false });
-        } catch {}
-      }, 1800);
-      // se l'utente scorre manualmente, rimuovi subito
-      const startY = window.scrollY;
-      const onScroll = () => {
-        if (Math.abs(window.scrollY - startY) > 10) {
-          try {
-            const params = new URLSearchParams(Array.from(searchParams?.entries?.() ?? []));
-            params.delete('post');
-            const qs = params.toString();
-            router.replace(qs ? `${safePathname}?${qs}` : safePathname, { scroll: false });
-          } catch {}
-          window.removeEventListener('scroll', onScroll);
-          clearTimeout(cleanTimeout);
-        }
-      };
-      window.addEventListener('scroll', onScroll, { once: false, passive: true });
-      return () => { window.removeEventListener('scroll', onScroll); clearTimeout(cleanTimeout); };
+    // attendi il render e salta direttamente senza animazione
+    const id = setTimeout(() => handleScrollToPost(postParam), 50);
+    return () => clearTimeout(id);
     }
   }, [postParam]);
 

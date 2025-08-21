@@ -1,5 +1,6 @@
 
 import { prisma } from '@/lib/prisma';
+import { sendPush } from '@/lib/webpush';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { followRequestSchema } from '@/lib/validations';
@@ -48,6 +49,19 @@ export async function POST(req: Request) {
           message: `${(session.user as any).name || 'Qualcuno'} ti ha inviato una richiesta di follow`,
         }
       }).catch(() => {});
+      // Push fuori app
+      try {
+        const subs = await (prisma as any).pushSubscription.findMany({ where: { userId: targetUserId } });
+        if (subs?.length) {
+          await Promise.all(subs.map((s: any) => sendPush({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, {
+            title: 'Nuova richiesta di follow',
+            body: `${(session.user as any).name || 'Qualcuno'} vuole seguirti`,
+            url: `/`,
+            icon: '/sf_logo.png',
+            badge: '/sf_logo.png'
+          })));
+        }
+      } catch {}
     }
     return Response.json({ status: 'updated-to-pending' });
   }
@@ -70,6 +84,19 @@ export async function POST(req: Request) {
         message: `${(session.user as any).name || 'Qualcuno'} ti ha inviato una richiesta di follow`,
       }
     }).catch(() => {});
+    // Push fuori app
+    try {
+      const subs = await (prisma as any).pushSubscription.findMany({ where: { userId: targetUserId } });
+      if (subs?.length) {
+        await Promise.all(subs.map((s: any) => sendPush({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, {
+          title: 'Nuova richiesta di follow',
+          body: `${(session.user as any).name || 'Qualcuno'} vuole seguirti`,
+          url: `/`,
+          icon: '/sf_logo.png',
+          badge: '/sf_logo.png'
+        })));
+      }
+    } catch {}
   }
   return Response.json({ status: 'pending', followRequest });
 }

@@ -318,10 +318,14 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                                   e.preventDefault();
                                   e.stopPropagation();
                                   dismissNotification(n.id);
-                                  router.push(`/?post=${n.postId}`);
-                                  setTimeout(() => {
-                                    window.dispatchEvent(new CustomEvent('scroll-to-post', { detail: { postId: n.postId } }));
-                                  }, 50);
+                                  if (path !== '/') {
+                                    router.push(`/?post=${n.postId}`, { scroll: false });
+                                  } else {
+                                    setTimeout(() => {
+                                      const el = document.getElementById(`post-${n.postId}`);
+                                      el?.scrollIntoView({ block: 'center' });
+                                    }, 50);
+                                  }
                                   setShowNoti(false);
                                 }}
                               >{n.message}</button>
@@ -333,10 +337,14 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                                   e.preventDefault();
                                   e.stopPropagation();
                                   dismissNotification(n.id);
-                                  router.push(`/?post=${n.postId}`);
-                                  setTimeout(() => {
-                                    window.dispatchEvent(new CustomEvent('scroll-to-post', { detail: { postId: n.postId } }));
-                                  }, 50);
+                                  if (path !== '/') {
+                                    router.push(`/?post=${n.postId}`, { scroll: false });
+                                  } else {
+                                    setTimeout(() => {
+                                      const el = document.getElementById(`post-${n.postId}`);
+                                      el?.scrollIntoView({ block: 'center' });
+                                    }, 50);
+                                  }
                                   setShowNoti(false);
                                 }}
                               >{n.message}</button>
@@ -348,10 +356,14 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                                   e.preventDefault();
                                   e.stopPropagation();
                                   dismissNotification(n.id);
-                                  router.push(`/?post=${n.postId}`);
-                                  setTimeout(() => {
-                                    window.dispatchEvent(new CustomEvent('scroll-to-post', { detail: { postId: n.postId } }));
-                                  }, 50);
+                                  if (path !== '/') {
+                                    router.push(`/?post=${n.postId}`, { scroll: false });
+                                  } else {
+                                    setTimeout(() => {
+                                      const el = document.getElementById(`post-${n.postId}`);
+                                      el?.scrollIntoView({ block: 'center' });
+                                    }, 50);
+                                  }
                                   setShowNoti(false);
                                 }}
                               >{n.message}</button>
@@ -453,10 +465,14 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                                     e.preventDefault();
                                     e.stopPropagation();
             dismissNotification(n.id);
-                                    router.push(`/?post=${n.postId}`);
-                                    setTimeout(() => {
-                                      window.dispatchEvent(new CustomEvent('scroll-to-post', { detail: { postId: n.postId } }));
-                                    }, 50);
+            if (path !== '/') {
+              router.push(`/?post=${n.postId}`, { scroll: false });
+            } else {
+              setTimeout(() => {
+                const el = document.getElementById(`post-${n.postId}`);
+                el?.scrollIntoView({ block: 'center' });
+              }, 50);
+            }
                                     setShowNoti(false);
                                   }}
                                 >{n.message}</button>
@@ -468,10 +484,14 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                                     e.preventDefault();
                                     e.stopPropagation();
             dismissNotification(n.id);
-                                    router.push(`/?post=${n.postId}`);
-                                    setTimeout(() => {
-                                      window.dispatchEvent(new CustomEvent('scroll-to-post', { detail: { postId: n.postId } }));
-                                    }, 50);
+            if (path !== '/') {
+              router.push(`/?post=${n.postId}`, { scroll: false });
+            } else {
+              setTimeout(() => {
+                const el = document.getElementById(`post-${n.postId}`);
+                el?.scrollIntoView({ block: 'center' });
+              }, 50);
+            }
                                     setShowNoti(false);
                                   }}
                                 >{n.message}</button>
