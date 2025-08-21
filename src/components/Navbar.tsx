@@ -123,18 +123,7 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
   document.addEventListener('visibilitychange', onVis)
   return () => { clearInterval(id); document.removeEventListener('visibilitychange', onVis) }
   }, [])
-  // Mobile search overlay
-  const [searchOpen, setSearchOpen] = useState(false)
-  const [searchAnimIn, setSearchAnimIn] = useState(false)
-  const searchInputRef = useRef<HTMLInputElement>(null)
-  useEffect(() => {
-    if (searchOpen) {
-      requestAnimationFrame(() => setSearchAnimIn(true));
-      setTimeout(() => searchInputRef.current?.focus(), 120);
-    } else {
-      setSearchAnimIn(false);
-    }
-  }, [searchOpen])
+  // Mobile search overlay removed; search is now in Feed under the title on mobile
   // Detect standalone (A2HS)
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -252,43 +241,12 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
             <span className="ml-2 text-xl sm:text-2xl font-extrabold align-middle bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent tracking-tight">Social Family</span>
           </div>
 
-          {/* Mobile: icone sinistra/destra */}
+          {/* Mobile: logo + titolo a sinistra, notifiche a destra */}
           <div className="relative flex items-center justify-between w-full sm:hidden mt-1 mb-1 px-2">
-            <button
-              onClick={() => setSearchOpen(true)}
-              aria-label={t.searchBtn}
-              className="h-12 w-12 rounded-full flex items-center justify-center bg-gradient-to-r from-indigo-400/20 to-purple-400/20 text-black ring-1 ring-black/5 shadow-sm"
-              title={t.searchBtn}
-            >
-              <FaSearch className="w-5 h-5" />
-            </button>
-            {/* Barra di ricerca inline tra le icone */}
-            {searchOpen && (
-              <div className={`absolute left-16 right-16 top-1/2 -translate-y-1/2 ${searchAnimIn ? 'opacity-100 scale-100' : 'opacity-0 scale-95'} transition-all duration-200`}>
-                <form onSubmit={(e)=>{ onSearch(e); setSearchAnimIn(false); setTimeout(()=>setSearchOpen(false), 160); }}>
-                  <div className="relative">
-                    <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-black">
-                      <FaSearch className="w-4 h-4" />
-                    </span>
-                    <input
-                      ref={searchInputRef}
-                      value={q}
-                      onChange={e=>setQ(e.target.value)}
-                      placeholder={t.search}
-                      className="w-full rounded-full border bg-white pl-9 pr-9 py-2 text-sm shadow"
-                    />
-                    <button
-                      aria-label="Chiudi e cancella"
-                      type="button"
-                      className="absolute right-1 top-1/2 -translate-y-1/2 p-2 rounded-full text-gray-600 hover:bg-gray-100"
-                      onClick={() => { setQ(''); setSearchAnimIn(false); setTimeout(()=>setSearchOpen(false), 120); }}
-                    >
-                      <BsX className="w-4 h-4" />
-                    </button>
-                  </div>
-                </form>
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              <Logo className="h-10 w-10" />
+              <span className="text-lg font-extrabold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent tracking-tight">Social Family</span>
+            </div>
             {user?.username && (
               <div className="relative" ref={notiRefMobile}>
                 <button onClick={()=>setShowNoti(v=>!v)} className="relative h-12 w-12 rounded-full flex items-center justify-center bg-gradient-to-r from-indigo-400/20 to-purple-400/20 text-black ring-1 ring-black/5 shadow-sm" title="Notifiche">
@@ -554,7 +512,7 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
           </button>
         </div>
   {q.trim().length > 0 && results && (
-        <div className="mt-3 rounded-2xl border bg-white p-3">
+        <div className="hidden sm:block mt-3 rounded-2xl border bg-white p-3">
           {Array.isArray(results.users) && Array.isArray(results.posts) ? (
             (results.users.length > 0 || results.posts.length > 0) ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
