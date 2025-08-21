@@ -486,17 +486,18 @@ function InlineComments({ postId, onReplyPosted }: { postId: string; onReplyPost
                 </div>
                 <div className="flex items-center gap-2">
                   <button
+                    type="button"
                     onClick={() => toggleLike(c.id)}
-                    className={`px-2 py-0.5 rounded-full border text-xs flex items-center gap-1 ${c.myLiked ? 'border-purple-500 text-purple-600' : 'border-purple-300 text-purple-500'}`}
+                    className={`px-2 py-0.5 rounded-full border text-xs flex items-center gap-1 cursor-pointer ${c.myLiked ? 'border-purple-500 text-purple-600' : 'border-purple-300 text-purple-500'}`}
                     style={{ borderWidth: 0.5 }}
                     aria-label="Mi piace"
                   >
                     {c.myLiked ? <AiFillHeart className="text-purple-600" /> : <AiOutlineHeart className="text-purple-500" />}
                     <span>{c.likesCount || 0}</span>
                   </button>
-                  <button className="text-xs text-blue-600 hover:underline" onClick={() => { setReplyFor(c.id); setReplyText('') }}>{t.reply}</button>
+                  <button type="button" className="text-xs text-blue-600 hover:underline cursor-pointer" onClick={() => { setReplyFor(c.id); setReplyText('') }}>{t.reply}</button>
                   {canDelete(c) && (
-                    <button className="text-xs text-red-600 hover:text-red-700 flex items-center gap-1" onClick={() => onDelete(c.id)} aria-label="Elimina commento">
+                    <button type="button" className="text-xs text-red-600 hover:text-red-700 flex items-center gap-1 cursor-pointer" onClick={() => onDelete(c.id)} aria-label="Elimina commento">
                       <FiTrash2 />
                     </button>
                   )}
@@ -518,17 +519,18 @@ function InlineComments({ postId, onReplyPosted }: { postId: string; onReplyPost
                     </div>
                     <div className="flex items-center gap-2">
                       <button
+                        type="button"
                         onClick={() => toggleLike(rc.id)}
-                        className={`px-2 py-0.5 rounded-full border text-[11px] flex items-center gap-1 ${rc.myLiked ? 'border-purple-500 text-purple-600' : 'border-purple-300 text-purple-500'}`}
+                        className={`px-2 py-0.5 rounded-full border text-[11px] flex items-center gap-1 cursor-pointer ${rc.myLiked ? 'border-purple-500 text-purple-600' : 'border-purple-300 text-purple-500'}`}
                         style={{ borderWidth: 0.5 }}
                         aria-label="Mi piace"
                       >
                         {rc.myLiked ? <AiFillHeart className="text-purple-600" /> : <AiOutlineHeart className="text-purple-500" />}
                         <span>{rc.likesCount || 0}</span>
                       </button>
-                      <button className="text-[11px] text-blue-600 hover:underline" onClick={() => { setReplyFor(rc.id); setReplyText('') }}>{t.reply}</button>
+                      <button type="button" className="text-[11px] text-blue-600 hover:underline cursor-pointer" onClick={() => { setReplyFor(rc.id); setReplyText('') }}>{t.reply}</button>
                       {canDelete(rc) && (
-                        <button className="text-[11px] text-red-600 hover:text-red-700 flex items-center gap-1" onClick={() => onDelete(rc.id)} aria-label="Elimina commento">
+                        <button type="button" className="text-[11px] text-red-600 hover:text-red-700 flex items-center gap-1 cursor-pointer" onClick={() => onDelete(rc.id)} aria-label="Elimina commento">
                           <FiTrash2 />
                         </button>
                       )}

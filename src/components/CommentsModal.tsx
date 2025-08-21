@@ -63,11 +63,15 @@ export default function CommentsModal({ postId, onClose }: { postId: string, onC
   }
 
   const toggleLike = async (commentId: string) => {
-    const res = await fetch(`/api/comments/${commentId}/like`, { method: 'POST' })
-    if (res.ok) {
+    try {
+      const res = await fetch(`/api/comments/${commentId}/like`, { method: 'POST' })
+      if (!res.ok) {
+        if (res.status === 401) alert('Accedi per mettere Mi piace ai commenti.')
+        return
+      }
       const data = await res.json().catch(() => null)
       setComments(prev => prev.map(c => c.id === commentId ? { ...c, myLiked: data?.liked ?? !c.myLiked, likesCount: data?.likesCount ?? (c.myLiked ? Math.max(0, (c.likesCount||0)-1) : (c.likesCount||0)+1) } : c))
-    }
+    } catch {}
   }
 
   const canDelete = (c: any) => (session?.user as any)?.id && c.authorId === (session?.user as any)?.id
@@ -147,17 +151,19 @@ export default function CommentsModal({ postId, onClose }: { postId: string, onC
                     </div>
                     <div className="flex items-center gap-3 shrink-0">
                       <button
+                        type="button"
                         onClick={() => toggleLike(c.id)}
-                        className={`px-2 py-0.5 rounded-full border text-xs flex items-center gap-1 justify-center min-w-[46px] ${c.myLiked ? 'border-purple-500 text-purple-600' : 'border-purple-300 text-purple-500'}`}
+                        className={`px-2 py-0.5 rounded-full border text-xs flex items-center gap-1 justify-center min-w-[46px] cursor-pointer ${c.myLiked ? 'border-purple-500 text-purple-600' : 'border-purple-300 text-purple-500'}`}
                         style={{ borderWidth: 0.5 }}
                         aria-label="Mi piace"
+                        title="Mi piace"
                       >
                         {c.myLiked ? <AiFillHeart className="text-purple-600" /> : <AiOutlineHeart className="text-purple-500" />}
                         <span>{c.likesCount || 0}</span>
                       </button>
-                      <button className="text-xs text-blue-600 hover:underline" onClick={() => { setReplyFor(c.id); setReplyText('') }}>{t.reply}</button>
+                      <button type="button" className="text-xs text-blue-600 hover:underline cursor-pointer" onClick={() => { setReplyFor(c.id); setReplyText('') }}>{t.reply}</button>
                       {canDelete(c) && (
-                        <button className="text-xs text-red-600 hover:text-red-700 flex items-center gap-1" onClick={() => onDelete(c.id)} aria-label="Elimina commento">
+                        <button type="button" className="text-xs text-red-600 hover:text-red-700 flex items-center gap-1 cursor-pointer" onClick={() => onDelete(c.id)} aria-label="Elimina commento" title="Elimina commento">
                           <FiTrash2 />
                         </button>
                       )}
@@ -197,17 +203,19 @@ export default function CommentsModal({ postId, onClose }: { postId: string, onC
                         </div>
                         <div className="flex items-center gap-3 shrink-0">
                           <button
+                            type="button"
                             onClick={() => toggleLike(rc.id)}
-                            className={`px-2 py-0.5 rounded-full border text-[11px] flex items-center gap-1 justify-center min-w-[46px] ${rc.myLiked ? 'border-purple-500 text-purple-600' : 'border-purple-300 text-purple-500'}`}
+                            className={`px-2 py-0.5 rounded-full border text-[11px] flex items-center gap-1 justify-center min-w-[46px] cursor-pointer ${rc.myLiked ? 'border-purple-500 text-purple-600' : 'border-purple-300 text-purple-500'}`}
                             style={{ borderWidth: 0.5 }}
                             aria-label="Mi piace"
+                            title="Mi piace"
                           >
                             {rc.myLiked ? <AiFillHeart className="text-purple-600" /> : <AiOutlineHeart className="text-purple-500" />}
                             <span>{rc.likesCount || 0}</span>
                           </button>
-                          <button className="text-[11px] text-blue-600 hover:underline" onClick={() => { setReplyFor(rc.id); setReplyText('') }}>{t.reply}</button>
+                          <button type="button" className="text-[11px] text-blue-600 hover:underline cursor-pointer" onClick={() => { setReplyFor(rc.id); setReplyText('') }}>{t.reply}</button>
                           {canDelete(rc) && (
-                            <button className="text-[11px] text-red-600 hover:text-red-700 flex items-center gap-1" onClick={() => onDelete(rc.id)} aria-label="Elimina commento">
+                            <button type="button" className="text-[11px] text-red-600 hover:text-red-700 flex items-center gap-1 cursor-pointer" onClick={() => onDelete(rc.id)} aria-label="Elimina commento" title="Elimina commento">
                               <FiTrash2 />
                             </button>
                           )}
