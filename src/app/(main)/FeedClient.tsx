@@ -3,7 +3,7 @@ import Link from 'next/link';
 import NewPost from '@/components/NewPost';
 import PostCard from '@/components/PostCard';
 import { LanguageContext } from '@/app/LanguageContext';
-import { useContext, useEffect, useState, useImperativeHandle, forwardRef } from 'react';
+import { useContext, useEffect, useState, useImperativeHandle, forwardRef, useRef } from 'react';
 
 const translations = {
   it: { noPosts: 'Nessun post trovato', explore: 'Esplora' },
@@ -19,15 +19,44 @@ const FeedClient = forwardRef(function FeedClient({ posts }: { posts: any[] }, r
   // Mobile search state
   const [q, setQ] = useState('');
   const [results, setResults] = useState<any | null>(null);
-  // Dynamic sticky offset equal to header height
-  const [stickyTop, setStickyTop] = useState<number>(56);
+  // Fixed-on-scroll behavior
+  const [headerH, setHeaderH] = useState<number>(56);
+  const [affix, setAffix] = useState(false);
+  const [searchH, setSearchH] = useState<number>(48);
+  const anchorRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const anchorTopRef = useRef<number>(0);
   useEffect(() => {
-    const el = document.querySelector('header');
-    if (!el) return;
-    const update = () => setStickyTop((el as HTMLElement).getBoundingClientRect().height || 56);
-    update();
-    window.addEventListener('resize', update);
-    return () => window.removeEventListener('resize', update);
+    const header = document.querySelector('header') as HTMLElement | null;
+    const compute = () => {
+      const h = header?.getBoundingClientRect().height || 56;
+      setHeaderH(h);
+      if (anchorRef.current) {
+        const rect = anchorRef.current.getBoundingClientRect();
+        anchorTopRef.current = rect.top + window.scrollY; // absolute Y
+        // measure input box height
+        const box = anchorRef.current.querySelector('[data-role="search-box"]') as HTMLElement | null;
+        const hh = box?.getBoundingClientRect().height || 48;
+        setSearchH(hh);
+      }
+    };
+    compute();
+    const onResize = () => compute();
+    window.addEventListener('resize', onResize);
+    // observe size changes of the search box
+    const ro = new ResizeObserver(() => compute());
+    if (anchorRef.current) {
+      const box = anchorRef.current.querySelector('[data-role="search-box"]') as HTMLElement | null;
+      if (box) ro.observe(box);
+    }
+    // scroll listener to toggle affix
+    const onScroll = () => {
+      const triggerY = anchorTopRef.current - (header?.getBoundingClientRect().height || 56);
+      setAffix(window.scrollY >= triggerY - 1);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => { window.removeEventListener('resize', onResize); window.removeEventListener('scroll', onScroll); ro.disconnect(); };
   }, []);
   // ...nessuna logica socket...
 
@@ -88,25 +117,71 @@ const FeedClient = forwardRef(function FeedClient({ posts }: { posts: any[] }, r
           {t.explore}
         </h1>
       </div>
-      {/* Mobile search under title (sticky under header) */}
-      <div className="sm:hidden px-2 -mt-2 mb-0">
-        <div className="sticky z-[9] bg-gray-50/95 backdrop-blur supports-[backdrop-filter]:bg-gray-50/70" style={{ top: stickyTop }}>
-          <div className="relative pb-[10px]">
+      {/* Mobile search under title (fixed when scrolled under header) */}
+      <div className="sm:hidden px-2 -mt-2 mb-0" ref={anchorRef}>
+        {/* Placeholder takes height when affixed to avoid layout shift */}
+        <div style={{ height: affix ? searchH + 10 : 0 }} />
+        {/* In-flow box (shown when not affixed) */}
+        {!affix && (
+          <div className="relative pb-[10px]" data-role="search-box">
             <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-500">
-            {/* magnifier icon path */}
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
-              <circle cx="11" cy="11" r="7"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
+              {/* magnifier icon path */}
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+                <circle cx="11" cy="11" r="7"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
             </span>
             <input
+              ref={inputRef}
               value={q}
               onChange={(e)=>setQ(e.target.value)}
               placeholder={t.explore}
-              className="w-full rounded-full border bg-white pl-9 pr-3 py-2 text-[16px] shadow"
+              className="w-full rounded-full border bg-white pl-9 pr-10 py-2 text-[16px] shadow"
             />
+            {q && (
+              <button
+                aria-label="Pulisci"
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full text-gray-600 hover:bg-gray-100"
+                onClick={() => { setQ(''); inputRef.current?.focus(); }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
           </div>
-        </div>
+        )}
+        {/* Fixed box (shown when affixed) */}
+        {affix && (
+          <div className="fixed left-0 right-0 z-[9] bg-gray-50/95 backdrop-blur supports-[backdrop-filter]:bg-gray-50/70" style={{ top: headerH }}>
+            <div className="relative px-2 pb-[10px]" data-role="search-box">
+              <span className="pointer-events-none absolute inset-y-0 left-5 flex items-center text-gray-500">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+                  <circle cx="11" cy="11" r="7"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+              </span>
+              <input
+                ref={inputRef}
+                value={q}
+                onChange={(e)=>setQ(e.target.value)}
+                placeholder={t.explore}
+                className="w-full rounded-full border bg-white pl-9 pr-10 py-2 text-[16px] shadow ml-2 mr-2"
+              />
+              {q && (
+                <button
+                  aria-label="Pulisci"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full text-gray-600 hover:bg-gray-100"
+                  onClick={() => { setQ(''); inputRef.current?.focus(); }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          </div>
+        )}
         {q.trim().length > 0 && results && (
           <div className="mt-2 rounded-xl border bg-white p-2">
             {Array.isArray(results.users) && Array.isArray(results.posts) ? (
