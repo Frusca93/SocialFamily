@@ -123,15 +123,12 @@ export default function ChatClient({ conversationId }: { conversationId: string 
         )}
       </div>
   {/* Offset the input above the mobile bottom navbar (h-20 ~= 5rem). On larger screens keep it at bottom: 0. */}
-  <div className="safe-pb sticky bottom-[5rem] sm:bottom-0 z-10 flex items-center gap-2 border-t bg-white p-2">
-        <input
+      <div className="safe-pb sticky bottom-[5rem] sm:bottom-0 z-10 flex items-end gap-2 border-t bg-white p-2">
+        <AutoTextarea
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={setInput}
           placeholder="Scrivi un messaggio"
-          className="flex-1 rounded-xl border px-3 py-2"
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') onSend()
-          }}
+          onEnter={onSend}
         />
         <button onClick={onSend} className="rounded-xl bg-purple-600 px-4 py-2 text-white">
           Invia
@@ -151,5 +148,33 @@ function MessageBubble({ meId, msg }: { meId: string | null; msg: Message }) {
     <div className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
       <div className={`${base} ${cls}`}>{msg.content}</div>
     </div>
+  )
+}
+
+function AutoTextarea({ value, onChange, placeholder, onEnter }: { value: string; onChange: (v: string) => void; placeholder?: string; onEnter?: () => void }) {
+  const ref = useRef<HTMLTextAreaElement | null>(null)
+  const resize = useCallback(() => {
+    const el = ref.current
+    if (!el) return
+    el.style.height = '0px'
+    const max = 5 // righe
+    const lineHeight = parseInt(getComputedStyle(el).lineHeight || '20', 10)
+    const wanted = Math.min(el.scrollHeight, lineHeight * max + 16) // +padding
+    el.style.height = wanted + 'px'
+    el.style.overflowY = el.scrollHeight > wanted ? 'auto' : 'hidden'
+  }, [])
+  useEffect(() => { resize() }, [value, resize])
+  return (
+    <textarea
+      ref={ref}
+      value={value}
+      placeholder={placeholder}
+      rows={1}
+      className="max-h-40 min-h-[2.5rem] flex-1 resize-none rounded-xl border px-3 py-2 leading-6 focus:outline-none"
+      onChange={(e) => onChange(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); onEnter && onEnter() }
+      }}
+    />
   )
 }
