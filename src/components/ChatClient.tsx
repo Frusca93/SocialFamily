@@ -61,20 +61,19 @@ export default function ChatClient({ conversationId }: { conversationId: string 
   useEffect(() => {
     const el = inputWrapRef.current
     if (!el) return
-    const set = () => setInputH(el.offsetHeight || 56)
-    set()
-    let ro: ResizeObserver | null = null
+    const update = () => setInputH(el.offsetHeight || 56)
+    update()
     const RO = (window as any).ResizeObserver
     if (typeof RO === 'function') {
-      ro = new RO(() => set())
-      ro.observe(el)
+      const obs = new RO(() => update())
+      obs.observe(el)
+      return () => obs.disconnect()
     } else {
       // fallback: resize on window resize
-      const onResize = () => set()
+      const onResize = () => update()
       window.addEventListener('resize', onResize)
       return () => window.removeEventListener('resize', onResize)
     }
-    return () => { if (ro) ro.disconnect() }
   }, [])
 
   const load = useCallback(async () => {
