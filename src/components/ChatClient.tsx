@@ -122,7 +122,8 @@ export default function ChatClient({ conversationId }: { conversationId: string 
           </div>
         )}
       </div>
-      <div className="safe-pb sticky bottom-0 z-10 flex items-center gap-2 border-t bg-white p-2">
+  {/* Offset the input above the mobile bottom navbar (h-20 ~= 5rem). On larger screens keep it at bottom: 0. */}
+  <div className="safe-pb sticky bottom-[5rem] sm:bottom-0 z-10 flex items-center gap-2 border-t bg-white p-2">
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}

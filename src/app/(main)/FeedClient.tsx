@@ -41,11 +41,11 @@ const FeedClient = forwardRef(function FeedClient({ posts }: { posts: any[] }, r
       try {
         const res = await fetch('/api/posts', { cache: 'no-store' });
         if (!res.ok) return;
-        const fresh = await res.json();
-        // Preserve liked flag if present locally
-        const mapLiked = new Map(feedPosts.map(p => [p.id, p.liked]));
+  const fresh = await res.json();
+  // Preserva SOLO il flag liked locale, ma usa i contatori aggiornati dal server
+  const mapLiked = new Map(feedPosts.map(p => [p.id, p.liked]));
   const merged = fresh.map((p: any) => ({ ...p, liked: mapLiked.get(p.id) ?? p.liked }));
-        setFeedPosts(merged);
+  setFeedPosts(merged);
       } catch {}
     };
   const id = setInterval(load, 3000);

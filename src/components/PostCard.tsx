@@ -77,6 +77,16 @@ export default function PostCard({ post }: { post: any }) {
   const { lang } = useContext(LanguageContext)
   const t = translations[lang as keyof typeof translations] || translations.it
 
+  // Mantieni i contatori allineati con gli aggiornamenti che arrivano dal server (Feed refresh)
+  useEffect(() => {
+    const next = post._count?.likes ?? 0
+    setLikes((prev) => (prev !== next ? next : prev))
+  }, [post.id, post._count?.likes])
+  useEffect(() => {
+    const next = post._count?.comments ?? 0
+    setComments((prev) => (prev !== next ? next : prev))
+  }, [post.id, post._count?.comments])
+
   async function handleDelete() {
     if (deleting) return
     setDeleting(true)
@@ -102,8 +112,18 @@ export default function PostCard({ post }: { post: any }) {
     const res = await fetch(`/api/posts/${post.id}/like`, { method: 'POST' })
     if (!res.ok) return
     const data = await res.json()
+    // Aggiorna in modo ottimistico
     setLikes(v => v + (data.liked ? 1 : -1))
     setLiked(data.liked)
+    // Poi riallinea con il server (contatore reale), per evitare mismatch quando altri mettono like
+    try {
+      const r = await fetch('/api/posts?authorId=' + encodeURIComponent(post.authorId), { cache: 'no-store' })
+      if (r.ok) {
+        const arr = await r.json()
+        const updated = Array.isArray(arr) ? arr.find((p: any) => p.id === post.id) : null
+        if (updated?._count?.likes != null) setLikes(updated._count.likes)
+      }
+    } catch {}
   }
 
   async function addComment(e: React.FormEvent) {
@@ -111,7 +131,19 @@ export default function PostCard({ post }: { post: any }) {
     if (!comment.trim() || commentPosting) return
     setCommentPosting(true)
     const res = await fetch('/api/comments', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ postId: post.id, content: comment }) })
-    if (res.ok) { setComments(c => c + 1); setComment('') }
+    if (res.ok) {
+      setComments(c => c + 1)
+      setComment('')
+      // Riallinea con il server
+      try {
+        const r = await fetch('/api/posts?authorId=' + encodeURIComponent(post.authorId), { cache: 'no-store' })
+        if (r.ok) {
+          const arr = await r.json()
+          const updated = Array.isArray(arr) ? arr.find((p: any) => p.id === post.id) : null
+          if (updated?._count?.comments != null) setComments(updated._count.comments)
+        }
+      } catch {}
+    }
     setCommentPosting(false)
   }
 
