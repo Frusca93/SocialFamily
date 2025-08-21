@@ -29,7 +29,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <link rel="apple-touch-icon" href="/sf_logo.png" />
         <meta property="og:image" content="/logo2.png" />
-  <meta name="theme-color" content="#7c3aed" />
+  <meta name="theme-color" content="#ffffff" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <title>SocialFamily</title>
       </head>
