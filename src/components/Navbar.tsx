@@ -241,11 +241,13 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
             <span className="ml-2 text-xl sm:text-2xl font-extrabold align-middle bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent tracking-tight">Social Family</span>
           </div>
 
-          {/* Mobile: logo + titolo a sinistra, notifiche a destra */}
-          <div className="relative flex items-center justify-between w-full sm:hidden mt-1 mb-1 px-2">
-            <div className="flex items-center gap-2">
+          {/* Mobile: logo | titolo centrato | notifiche */}
+          <div className="relative grid grid-cols-[auto_1fr_auto] items-center w-full sm:hidden mt-1 mb-1 px-2">
+            <div className="flex items-center">
               <Logo className="h-10 w-10" />
-              <span className="text-lg font-extrabold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent tracking-tight">Social Family</span>
+            </div>
+            <div className="flex items-center justify-center">
+              <span className="text-2xl font-extrabold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent tracking-tight truncate">Social Family</span>
             </div>
             {user?.username && (
               <div className="relative" ref={notiRefMobile}>

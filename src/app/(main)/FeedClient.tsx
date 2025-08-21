@@ -112,8 +112,8 @@ const FeedClient = forwardRef(function FeedClient({ posts }: { posts: any[] }, r
 
   return (
     <div className="space-y-0 sm:space-y-6">
-  <div className="flex justify-center sm:justify-start pt-2 pb-4 sm:pt-3 sm:pb-5">
-        <h1 className="text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent tracking-tight">
+      <div className="flex justify-center sm:justify-start pt-2 pb-4 sm:pt-3 sm:pb-5">
+        <h1 className="text-2xl sm:text-4xl font-extrabold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent tracking-tight">
           {t.explore}
         </h1>
       </div>
