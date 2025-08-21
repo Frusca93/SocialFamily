@@ -71,6 +71,8 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
   const pathname = usePathname();
   const path = pathname || ''
   const [q, setQ] = useState('')
+  const [isStandalone, setIsStandalone] = useState(false)
+  const [pushMsg, setPushMsg] = useState<string | null>(null)
   const [results, setResults] = useState<any | null>(null)
   const { data: session } = useSession()
   const user = session?.user as UserWithUsername | undefined
@@ -133,6 +135,12 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
       setSearchAnimIn(false);
     }
   }, [searchOpen])
+  // Detect standalone (A2HS)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const standalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
+    setIsStandalone(!!standalone)
+  }, [])
   // Chiudi dropdown se clic fuori (robusto su mobile): usa pointerdown + composedPath
   useEffect(() => {
     const handle = (e: PointerEvent) => {
@@ -588,6 +596,49 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
         </div>
         )}
       </header>
+
+      {/* Mobile-only: CTA per abilitare notifiche quando in standalone e non ancora concesse */}
+      {typeof window !== 'undefined' && isStandalone && (Notification as any)?.permission !== 'granted' && (
+        <div className="sm:hidden px-3 py-2 bg-yellow-50 text-yellow-800 text-sm border-b border-yellow-200 flex items-center justify-between">
+          <span>Abilita le notifiche push</span>
+          <button
+            className="ml-3 rounded-lg bg-purple-600 px-3 py-1 text-white"
+            onClick={async () => {
+              try {
+                setPushMsg(null)
+                if (!('serviceWorker' in navigator)) { setPushMsg('SW non supportato'); return; }
+                if (!('Notification' in window)) { setPushMsg('Notifiche non supportate'); return; }
+                const perm = await Notification.requestPermission();
+                if (perm !== 'granted') { setPushMsg('Permesso negato'); return; }
+                const reg = await navigator.serviceWorker.ready;
+                const r = await fetch('/api/push/vapid-public-key');
+                const j = await r.json().catch(() => ({}));
+                const publicKey = j.key as string;
+                if (!publicKey) { setPushMsg('Chiave VAPID mancante'); return; }
+                const applicationServerKey = (function urlBase64ToUint8Array(base64String: string) {
+                  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+                  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+                  const rawData = window.atob(base64);
+                  const outputArray = new Uint8Array(rawData.length);
+                  for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+                  return outputArray;
+                })(publicKey);
+                const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey }).catch(() => null);
+                if (!sub) { setPushMsg('Subscription fallita'); return; }
+                const save = await fetch('/api/push/subscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscription: sub }) });
+                const sj = await save.json().catch(() => ({}));
+                if (!save.ok || sj.ok === false) { setPushMsg('Salvataggio subscription fallito'); return; }
+                setPushMsg('Notifiche abilitate')
+              } catch (e) {
+                setPushMsg('Errore durante attivazione')
+              }
+            }}
+          >Attiva</button>
+        </div>
+      )}
+      {pushMsg && (
+        <div className="sm:hidden px-3 py-2 text-xs text-gray-600">{pushMsg}</div>
+      )}
 
   {/* rimosso overlay mobile: ora la ricerca appare tra le icone */}
       {/* Bottom navigation mobile */}
