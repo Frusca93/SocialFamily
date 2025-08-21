@@ -241,7 +241,7 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
           {/* Logo solo desktop */}
           <div className="hidden sm:flex items-center">
             <Logo className="h-12 w-12" />
-            <span className="ml-2 text-xl font-bold align-middle" style={{ color: '#1976d2' }}>SocialFamily</span>
+            <span className="ml-2 text-xl sm:text-2xl font-extrabold align-middle bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent tracking-tight">Social Family</span>
           </div>
 
           {/* Mobile: icone sinistra/destra */}
