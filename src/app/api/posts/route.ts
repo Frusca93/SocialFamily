@@ -105,6 +105,46 @@ export async function POST(req: Request) {
       data: { content, mediaUrl, mediaType, authorId: (session.user as any).id },
       include: { author: true, _count: true, likes: true }
     });
+    // Notifica i follower: quando pubblico un nuovo post, avvisa tutti i miei follower
+    try {
+      const authorId = (session.user as any).id as string
+      const followers = await prisma.follow.findMany({
+        where: { followingId: authorId },
+        select: { followerId: true }
+      })
+      if (followers.length) {
+        const msg = `${post.author?.name || 'Qualcuno'} ha pubblicato un nuovo post`
+        // Crea notifiche nel DB per i follower
+        try {
+          await prisma.notification.createMany({
+            data: followers.map(f => ({
+              userId: f.followerId,
+              type: 'new-post' as any,
+              postId: post.id,
+              fromUserId: authorId,
+              message: msg,
+            }))
+          })
+        } catch {}
+        // Invia push ai follower
+        try {
+          for (const f of followers) {
+            try {
+              const subs = await (prisma as any).pushSubscription.findMany({ where: { userId: f.followerId } })
+              if (subs?.length) {
+                await Promise.all(subs.map((s: any) => sendPush({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, {
+                  title: 'Nuovo post',
+                  body: msg,
+                  url: `/?post=${post.id}`,
+                  icon: '/sf_logo.png',
+                  badge: '/sf_logo.png'
+                })))
+              }
+            } catch {}
+          }
+        } catch {}
+      }
+    } catch {}
     // Mentions notifications: find @username tokens in content
     try {
       const usernames = Array.from(new Set((content.match(/@([a-zA-Z0-9_]+)/g) || []).map((s: string) => s.slice(1))));
