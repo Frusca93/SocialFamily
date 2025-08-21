@@ -663,16 +663,14 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
               <BsPersonCircle className="w-6 h-6" />
             </button>
 
-            {/* Plus floating */}
-  <div className="absolute left-1/2 -top-7 -translate-x-1/2">
-              <button
-                aria-label="Nuovo post"
-                onClick={() => setShowComposer(true)}
-        className="h-12 w-12 rounded-full bg-white text-blue-700 shadow-xl ring-6 ring-white flex items-center justify-center"
-              >
-        <BsPlusLg className="w-5 h-5" />
-              </button>
-            </div>
+            {/* Plus centered among icons */}
+            <button
+              aria-label="Nuovo post"
+              onClick={() => setShowComposer(true)}
+              className="h-10 w-10 rounded-[6px] bg-white text-purple-600 shadow-md flex items-center justify-center"
+            >
+              <BsPlusLg className="w-5 h-5" />
+            </button>
 
             {/* Chat placeholder */}
             <button

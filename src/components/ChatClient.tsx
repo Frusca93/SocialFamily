@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { IoSend } from 'react-icons/io5'
 
 type Message = {
   id: string
@@ -131,7 +132,7 @@ export default function ChatClient({ conversationId }: { conversationId: string 
 
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col">
-  <div ref={listRef} className="min-h-0 flex-1 overflow-y-auto p-3" style={{ paddingBottom: inputH }}>
+  <div ref={listRef} className="min-h-0 flex-1 overflow-y-auto p-3" style={{ paddingBottom: inputH + 10 }}>
         {loading && messages.length === 0 ? (
           <div className="p-2 text-sm text-gray-500">Caricamento…</div>
         ) : (
@@ -143,15 +144,15 @@ export default function ChatClient({ conversationId }: { conversationId: string 
         )}
       </div>
   {/* Offset the input above the mobile bottom navbar (h-20 ~= 5rem). On larger screens keep it at bottom: 0. */}
-  <div ref={inputWrapRef} className="safe-pb sticky bottom-0 z-10 flex items-end gap-2 border-t bg-white p-2">
+  <div ref={inputWrapRef} className="safe-pb sticky bottom-[10px] z-10 flex items-end gap-2 border-t bg-white p-2">
         <AutoTextarea
           value={input}
           onChange={setInput}
           placeholder="Scrivi un messaggio"
           onEnter={onSend}
         />
-        <button onClick={onSend} className="rounded-xl bg-purple-600 px-4 py-2 text-white">
-          Invia
+        <button onClick={onSend} aria-label="Invia" className="rounded-xl bg-purple-600 px-3 py-2 text-white">
+          <IoSend className="w-5 h-5 text-white" />
         </button>
       </div>
     </div>
