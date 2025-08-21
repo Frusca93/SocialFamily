@@ -341,6 +341,21 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                                 }}
                               >{n.message}</button>
                             )}
+                            {(n.type === 'new-post') && n.postId && (
+                              <button
+                                className="flex-1 text-blue-700 hover:underline text-left"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  dismissNotification(n.id);
+                                  router.push(`/?post=${n.postId}`);
+                                  setTimeout(() => {
+                                    window.dispatchEvent(new CustomEvent('scroll-to-post', { detail: { postId: n.postId } }));
+                                  }, 50);
+                                  setShowNoti(false);
+                                }}
+                              >{n.message}</button>
+                            )}
                             {n.type !== 'follow-request' && (
                               <button
                                 aria-label="Chiudi notifica"
@@ -452,6 +467,22 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
                                   onClick={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
+            dismissNotification(n.id);
+                                    router.push(`/?post=${n.postId}`);
+                                    setTimeout(() => {
+                                      window.dispatchEvent(new CustomEvent('scroll-to-post', { detail: { postId: n.postId } }));
+                                    }, 50);
+                                    setShowNoti(false);
+                                  }}
+                                >{n.message}</button>
+                              )}
+                              {(n.type === 'new-post') && n.postId && (
+                                <button
+                                  className="flex-1 text-blue-700 hover:underline text-left"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+            dismissNotification(n.id);
                                     router.push(`/?post=${n.postId}`);
                                     setTimeout(() => {
                                       window.dispatchEvent(new CustomEvent('scroll-to-post', { detail: { postId: n.postId } }));

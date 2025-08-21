@@ -77,22 +77,24 @@ const FeedClient = forwardRef(function FeedClient({ posts }: { posts: any[] }, r
           {t.explore}
         </h1>
       </div>
-      {/* Mobile search under title */}
-      <div className="sm:hidden px-2 -mt-2 mb-3">
-        <div className="relative">
-          <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-500">
+      {/* Mobile search under title (sticky) */}
+      <div className="sm:hidden px-2 -mt-2 mb-0">
+        <div className="sticky top-14 z-10 bg-gray-50/95 backdrop-blur supports-[backdrop-filter]:bg-gray-50/70">
+          <div className="relative pb-[10px]">
+            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-500">
             {/* magnifier icon path */}
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
               <circle cx="11" cy="11" r="7"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
-          </span>
-          <input
-            value={q}
-            onChange={(e)=>setQ(e.target.value)}
-            placeholder={t.explore}
-            className="w-full rounded-full border bg-white pl-9 pr-3 py-2 text-[16px] shadow"
-          />
+            </span>
+            <input
+              value={q}
+              onChange={(e)=>setQ(e.target.value)}
+              placeholder={t.explore}
+              className="w-full rounded-full border bg-white pl-9 pr-3 py-2 text-[16px] shadow"
+            />
+          </div>
         </div>
         {q.trim().length > 0 && results && (
           <div className="mt-2 rounded-xl border bg-white p-2">
