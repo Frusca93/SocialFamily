@@ -9,6 +9,8 @@ import { IoSend } from 'react-icons/io5'
 import { FaHeart, FaRegHeart } from 'react-icons/fa'
 import { BsChatDots } from 'react-icons/bs'
 import ImageLightbox from './ImageLightbox'
+import { AiFillHeart, AiOutlineHeart } from 'react-icons/ai'
+import { FiTrash2 } from 'react-icons/fi'
 
 const translations = {
   it: {
@@ -381,6 +383,7 @@ function InlineComments({ postId, onReplyPosted }: { postId: string; onReplyPost
   const [replyFor, setReplyFor] = useState<string | null>(null)
   const [replyText, setReplyText] = useState('')
   const [replyPosting, setReplyPosting] = useState(false)
+  const { data: session } = useSession()
 
   useEffect(() => {
     let timer: any
@@ -415,6 +418,33 @@ function InlineComments({ postId, onReplyPosted }: { postId: string; onReplyPost
     }
     return { roots: byParent['root'] || [], byParent }
   }, [items])
+
+  const refresh = async () => {
+    try {
+      const r = await fetch(`/api/comments?postId=${encodeURIComponent(postId)}`, { cache: 'no-store' })
+      if (r.ok) setItems(await r.json())
+    } catch {}
+  }
+
+  const toggleLike = async (commentId: string) => {
+    try {
+      const res = await fetch(`/api/comments/${commentId}/like`, { method: 'POST' })
+      if (!res.ok) return
+      const data = await res.json().catch(() => null)
+      setItems(prev => prev.map(c => c.id === commentId ? {
+        ...c,
+        myLiked: data?.liked ?? !c.myLiked,
+        likesCount: data?.likesCount ?? (c.myLiked ? Math.max(0, (c.likesCount || 0) - 1) : (c.likesCount || 0) + 1)
+      } : c))
+    } catch {}
+  }
+
+  const canDelete = (c: any) => (session?.user as any)?.id && c.authorId === (session?.user as any)?.id
+  const onDelete = async (commentId: string) => {
+    if (!confirm('Eliminare il commento?')) return
+    const res = await fetch(`/api/comments?commentId=${encodeURIComponent(commentId)}`, { method: 'DELETE' })
+    if (res.ok) await refresh()
+  }
 
   async function sendReply(parentId: string) {
     if (!replyText.trim()) return
@@ -454,7 +484,23 @@ function InlineComments({ postId, onReplyPosted }: { postId: string; onReplyPost
                   <div className="text-sm text-gray-700">{renderMentions(c.content)}</div>
                   <div className="text-xs text-gray-400">{c.createdAt ? new Date(c.createdAt).toLocaleString() : ''}</div>
                 </div>
-                <button className="text-xs text-blue-600 hover:underline" onClick={() => { setReplyFor(c.id); setReplyText('') }}>{t.reply}</button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => toggleLike(c.id)}
+                    className={`px-2 py-0.5 rounded-full border text-xs flex items-center gap-1 ${c.myLiked ? 'border-purple-500 text-purple-600' : 'border-purple-300 text-purple-500'}`}
+                    style={{ borderWidth: 0.5 }}
+                    aria-label="Mi piace"
+                  >
+                    {c.myLiked ? <AiFillHeart className="text-purple-600" /> : <AiOutlineHeart className="text-purple-500" />}
+                    <span>{c.likesCount || 0}</span>
+                  </button>
+                  <button className="text-xs text-blue-600 hover:underline" onClick={() => { setReplyFor(c.id); setReplyText('') }}>{t.reply}</button>
+                  {canDelete(c) && (
+                    <button className="text-xs text-red-600 hover:text-red-700 flex items-center gap-1" onClick={() => onDelete(c.id)} aria-label="Elimina commento">
+                      <FiTrash2 />
+                    </button>
+                  )}
+                </div>
               </div>
               {replyFor === c.id && (
                 <form onSubmit={(e) => { e.preventDefault(); sendReply(c.id); }} className="mt-2 flex gap-2">
@@ -470,7 +516,23 @@ function InlineComments({ postId, onReplyPosted }: { postId: string; onReplyPost
                       <div className="text-sm text-gray-700">{renderMentions(rc.content)}</div>
                       <div className="text-xs text-gray-400">{rc.createdAt ? new Date(rc.createdAt).toLocaleString() : ''}</div>
                     </div>
-                    <button className="text-[11px] text-blue-600 hover:underline" onClick={() => { setReplyFor(rc.id); setReplyText('') }}>{t.reply}</button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => toggleLike(rc.id)}
+                        className={`px-2 py-0.5 rounded-full border text-[11px] flex items-center gap-1 ${rc.myLiked ? 'border-purple-500 text-purple-600' : 'border-purple-300 text-purple-500'}`}
+                        style={{ borderWidth: 0.5 }}
+                        aria-label="Mi piace"
+                      >
+                        {rc.myLiked ? <AiFillHeart className="text-purple-600" /> : <AiOutlineHeart className="text-purple-500" />}
+                        <span>{rc.likesCount || 0}</span>
+                      </button>
+                      <button className="text-[11px] text-blue-600 hover:underline" onClick={() => { setReplyFor(rc.id); setReplyText('') }}>{t.reply}</button>
+                      {canDelete(rc) && (
+                        <button className="text-[11px] text-red-600 hover:text-red-700 flex items-center gap-1" onClick={() => onDelete(rc.id)} aria-label="Elimina commento">
+                          <FiTrash2 />
+                        </button>
+                      )}
+                    </div>
                   </div>
                   {replyFor === rc.id && (
                     <form onSubmit={(e) => { e.preventDefault(); sendReply(rc.id); }} className="mt-2 flex gap-2">

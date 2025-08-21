@@ -77,6 +77,18 @@ export default function CommentsModal({ postId, onClose }: { postId: string, onC
     if (res.ok) await refresh()
   }
 
+  const renderMentions = (text: string) => {
+    const parts = (text || '').split(/(@[a-zA-Z0-9_]+)/g)
+    return parts.map((p, i) => {
+      const m = p.match(/^@([a-zA-Z0-9_]+)$/)
+      if (m) {
+        const username = m[1]
+        return <a key={i} href={`/profile/${username}`} className="text-purple-600 hover:underline">@{username}</a>
+      }
+      return <span key={i}>{p}</span>
+    })
+  }
+
   useEffect(() => {
     async function fetchComments() {
       setLoading(true)
@@ -130,13 +142,13 @@ export default function CommentsModal({ postId, onClose }: { postId: string, onC
                   <div className="flex items-start gap-2">
                     <div className="flex-1">
                       <div className="font-semibold">{c.author?.name || t.anonymous} <span className="text-xs text-gray-400">@{c.author?.username}</span></div>
-                      <div className="text-sm text-gray-700">{c.content}</div>
+                      <div className="text-sm text-gray-700">{renderMentions(c.content)}</div>
                       <div className="text-xs text-gray-400">{c.createdAt ? new Date(c.createdAt).toLocaleString() : ''}</div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3 shrink-0">
                       <button
                         onClick={() => toggleLike(c.id)}
-                        className={`px-2 py-0.5 rounded-full border text-xs flex items-center gap-1 ${c.myLiked ? 'border-purple-500 text-purple-600' : 'border-purple-300 text-purple-500'}`}
+                        className={`px-2 py-0.5 rounded-full border text-xs flex items-center gap-1 justify-center min-w-[46px] ${c.myLiked ? 'border-purple-500 text-purple-600' : 'border-purple-300 text-purple-500'}`}
                         style={{ borderWidth: 0.5 }}
                         aria-label="Mi piace"
                       >
@@ -180,13 +192,13 @@ export default function CommentsModal({ postId, onClose }: { postId: string, onC
                       <div className="flex items-start gap-2">
                         <div className="flex-1">
                           <div className="font-semibold text-sm">{rc.author?.name || t.anonymous} <span className="text-[10px] text-gray-400">@{rc.author?.username}</span></div>
-                          <div className="text-sm text-gray-700">{rc.content}</div>
+                          <div className="text-sm text-gray-700">{renderMentions(rc.content)}</div>
                           <div className="text-xs text-gray-400">{rc.createdAt ? new Date(rc.createdAt).toLocaleString() : ''}</div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3 shrink-0">
                           <button
                             onClick={() => toggleLike(rc.id)}
-                            className={`px-2 py-0.5 rounded-full border text-[11px] flex items-center gap-1 ${rc.myLiked ? 'border-purple-500 text-purple-600' : 'border-purple-300 text-purple-500'}`}
+                            className={`px-2 py-0.5 rounded-full border text-[11px] flex items-center gap-1 justify-center min-w-[46px] ${rc.myLiked ? 'border-purple-500 text-purple-600' : 'border-purple-300 text-purple-500'}`}
                             style={{ borderWidth: 0.5 }}
                             aria-label="Mi piace"
                           >
