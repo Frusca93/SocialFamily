@@ -59,6 +59,8 @@ model User {
   // Messaging back-relations
   conversationParticipants ConversationParticipant[] @relation("ConversationParticipantsUser")
   messagesSent             Message[]                 @relation("MessageSender")
+  // Web Push back-relations
+  pushSubscriptions        PushSubscription[]
 }
 
 model Post {
@@ -150,4 +152,18 @@ model Message {
   content        String
   createdAt      DateTime     @default(now())
   readAt         DateTime?
+}
+
+// Web Push subscriptions
+model PushSubscription {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
 }

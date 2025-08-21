@@ -24,6 +24,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <head>
         <link rel="icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/logo2.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <link rel="apple-touch-icon" href="/sf_logo.png" />
         <meta property="og:image" content="/logo2.png" />
   <meta name="theme-color" content="#7c3aed" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />

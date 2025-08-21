@@ -30,5 +30,21 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   if (!content) return Response.json({ error: 'content' }, { status: 400 })
   const msg = await (prisma as any).message.create({ data: { conversationId: id, senderId: userId, content } })
   await (prisma as any).conversation.update({ where: { id }, data: { updatedAt: new Date() } })
+  // Best-effort push notify the other participant
+  try {
+    const participants = await (prisma as any).conversationParticipant.findMany({ where: { conversationId: id } });
+    const other = participants.find((p: any) => p.userId !== userId);
+    if (other) {
+      const subs = await (prisma as any).pushSubscription.findMany({ where: { userId: other.userId } });
+      const { sendPush } = await import('@/lib/webpush');
+      await Promise.all(subs.map((s: any) => sendPush({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, {
+        title: 'Nuovo messaggio',
+        body: content.length > 80 ? content.slice(0, 77) + '…' : content,
+        url: `/messages/${id}`,
+        icon: '/sf_logo.png',
+        badge: '/sf_logo.png'
+      })));
+    }
+  } catch {}
   return Response.json({ message: msg })
 }
