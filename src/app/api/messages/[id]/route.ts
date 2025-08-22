@@ -14,6 +14,11 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     include: { messages: { orderBy: { createdAt: 'asc' } }, participants: { include: { user: { select: { id: true, name: true, username: true, image: true } } } } }
   })
   if (!conv) return Response.json([], { status: 404 })
+  // If the conversation was hidden for me, unhide it now that I'm opening it
+  await (prisma as any).conversationParticipant.update({
+    where: { conversationId_userId: { conversationId: id, userId } },
+    data: { hiddenAt: null }
+  }).catch(() => {})
   // mark as read
   await (prisma as any).message.updateMany({ where: { conversationId: id, senderId: { not: userId }, readAt: null }, data: { readAt: new Date() } })
   const other = conv.participants.map((p: any) => p.user).find((u: any) => u.id !== userId) || conv.participants[0]?.user

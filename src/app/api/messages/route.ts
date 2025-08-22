@@ -49,7 +49,14 @@ export async function POST(req: Request) {
   const existing = await (prisma as any).conversation.findFirst({
     where: { participants: { every: { userId: { in: [userId, target.id] } } } },
   })
-  if (existing) return Response.json({ id: existing.id })
+  if (existing) {
+    // If it was hidden for me, unhide it so it stays visible again
+    await (prisma as any).conversationParticipant.update({
+      where: { conversationId_userId: { conversationId: existing.id, userId } },
+      data: { hiddenAt: null }
+    }).catch(() => {})
+    return Response.json({ id: existing.id })
+  }
   const created = await (prisma as any).conversation.create({
     data: {
       participants: { create: [{ userId }, { userId: target.id }] }
