@@ -488,7 +488,16 @@ function InlineComments({ postId, onReplyPosted }: { postId: string; onReplyPost
       <div className="flex items-start gap-2">
         <div className="flex-1">
           <div className={depth === 0 ? 'font-semibold text-sm' : 'font-semibold text-sm'}>
-            {c.author?.name || t.anonymous} <span className={depth === 0 ? 'text-[11px] text-gray-400' : 'text-[10px] text-gray-400'}>@{c.author?.username}</span>
+            {c.author?.username ? (
+              <a href={`/profile/${c.author.username}`} className="text-purple-600 hover:underline">
+                {c.author?.name || c.author?.username}
+              </a>
+            ) : (
+              <span>{c.author?.name || t.anonymous}</span>
+            )}
+            {c.author?.username && (
+              <span className={depth === 0 ? 'ml-1 text-[11px] text-gray-400' : 'ml-1 text-[10px] text-gray-400'}>@{c.author.username}</span>
+            )}
           </div>
           <div className="text-sm text-gray-700">{renderMentions(c.content)}</div>
           <div className="text-xs text-gray-400">{c.createdAt ? new Date(c.createdAt).toLocaleString() : ''}</div>

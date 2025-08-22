@@ -44,7 +44,11 @@ export function ChatHeader({ conversationId }: { conversationId: string }) {
       ) : (
         <span className="h-8 w-8 rounded-full bg-gray-200" />
       )}
-      <div className="font-semibold">{title}</div>
+      {data?.other?.username ? (
+        <a href={`/profile/${data.other.username}`} className="font-semibold text-purple-600 hover:underline">{title}</a>
+      ) : (
+        <div className="font-semibold">{title}</div>
+      )}
     </div>
   )
 }
