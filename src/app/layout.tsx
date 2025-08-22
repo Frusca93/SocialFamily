@@ -8,9 +8,34 @@ import SocketProvider from '@/components/SocketProvider'
 
 function LanguageProvider({ children }: { children: ReactNode }) {
   const { data: session } = useSession?.() || {}
-  const userLang = (session?.user as any)?.language || 'it'
-  const [lang, setLang] = useState(userLang)
-  useEffect(() => { setLang(userLang) }, [userLang])
+  const userLang = (session?.user as any)?.language || ''
+  const [lang, setLangState] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = window.localStorage.getItem('lang')
+      return stored || 'it'
+    }
+    return 'it'
+  })
+
+  // Apply language to <html> and persist
+  const applyLang = (l: string) => {
+    try { window.localStorage.setItem('lang', l) } catch {}
+    try { document.documentElement.setAttribute('lang', l) } catch {}
+  }
+
+  // When session changes, prefer the user language if present; else keep stored
+  useEffect(() => {
+    const stored = typeof window !== 'undefined' ? window.localStorage.getItem('lang') : null
+    const next = (userLang && userLang.length ? userLang : (stored || 'it'))
+    setLangState(prev => prev === next ? prev : next)
+    applyLang(next)
+  }, [userLang])
+
+  // Ensure initial mount syncs the <html lang>
+  useEffect(() => { applyLang(lang) }, [])
+
+  const setLang = (l: string) => { setLangState(l); applyLang(l) }
+
   return (
     <LanguageContext.Provider value={{ lang, setLang }}>
       {children}
