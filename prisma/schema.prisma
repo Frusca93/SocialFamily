@@ -76,6 +76,8 @@ model Post {
   likes         Like[]
   comments      Comment[]
   notifications Notification[]
+  // Multiple media (images/videos)
+  media         PostMedia[]
 }
 
 model Like {
@@ -181,4 +183,16 @@ model PushSubscription {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+}
+
+// Post media items for multiple images/videos per post
+model PostMedia {
+  id        String  @id @default(cuid())
+  post      Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String
+  url       String
+  type      String? // 'image' | 'video'
+  order     Int     @default(0)
+
+  @@index([postId])
 }

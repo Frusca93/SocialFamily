@@ -37,10 +37,10 @@ export async function GET(req: Request) {
       where = { authorId: { in: ids } };
     }
   }
-  const posts = await prisma.post.findMany({
+  const posts = await (prisma as any).post.findMany({
     where,
     orderBy: { createdAt: 'desc' },
-    include: { author: true, _count: { select: { likes: true, comments: true } } }
+    include: { author: true, _count: { select: { likes: true, comments: true } }, media: { orderBy: { order: 'asc' } } }
   })
   return Response.json(posts)
 }
@@ -55,8 +55,9 @@ export async function POST(req: Request) {
 
     const contentType = req.headers.get('content-type') || ''
     let content = ''
-    let mediaUrl = ''
-    let mediaType: string | undefined = undefined
+  let mediaUrl = ''
+  let mediaType: string | undefined = undefined
+  let mediaUrls: string[] = []
 
     if (contentType.startsWith('multipart/form-data')) {
       const formData = await req.formData()
@@ -82,7 +83,19 @@ export async function POST(req: Request) {
       const body = await req.json();
       content = body.content;
       mediaType = body.mediaType;
-      if (body.fileBase64) {
+      if (Array.isArray(body.filesBase64) && body.filesBase64.length > 0) {
+        const folder = mediaType === 'video' ? 'post-videos' : 'post-images';
+        try {
+          const uploads = await Promise.all(
+            body.filesBase64.map((b64: string) => cloudinary.uploader.upload(b64, { folder }))
+          )
+          mediaUrls = uploads.map(u => u.secure_url)
+          mediaUrl = mediaUrls[0] || ''
+        } catch (err) {
+          logError('Errore upload Cloudinary (filesBase64):', err)
+          return Response.json({ error: 'Errore upload immagini' }, { status: 500 });
+        }
+      } else if (body.fileBase64) {
         const folder = mediaType === 'video' ? 'post-videos' : 'post-images';
         try {
           const uploadRes = await cloudinary.uploader.upload(body.fileBase64, { folder });
@@ -105,6 +118,15 @@ export async function POST(req: Request) {
       data: { content, mediaUrl, mediaType, authorId: (session.user as any).id },
       include: { author: true, _count: true, likes: true }
     });
+
+    // Save multiple media if provided
+    if (mediaUrls.length > 0) {
+      try {
+        await (prisma as any).postMedia.createMany({
+          data: mediaUrls.map((url, idx) => ({ postId: post.id, url, type: mediaType, order: idx })),
+        })
+      } catch (e) { logError('Errore salvataggio PostMedia:', e) }
+    }
     // Notifica i follower: quando pubblico un nuovo post, avvisa tutti i miei follower
     try {
       const authorId = (session.user as any).id as string

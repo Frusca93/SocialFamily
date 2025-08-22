@@ -112,6 +112,7 @@ export default function PostCard({ post }: { post: any }) {
   const [liked, setLiked] = useState(post.liked ?? false);
   const [showLikes, setShowLikes] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [slide, setSlide] = useState(0);
   async function toggleLike() {
     const res = await fetch(`/api/posts/${post.id}/like`, { method: 'POST' })
     if (!res.ok) return
@@ -186,7 +187,28 @@ export default function PostCard({ post }: { post: any }) {
       <p className="whitespace-pre-line">
         {renderMentions(post.content)}
       </p>
-      {post.mediaUrl && post.mediaType === 'image' && (
+      {Array.isArray(post.media) && post.media.length > 1 && post.media[0]?.type === 'image' && (
+        <div className="mt-3">
+          <div className="relative overflow-hidden rounded-xl border">
+            <div className="flex transition-transform duration-300" style={{ transform: `translateX(-${slide * 100}%)`, width: `${post.media.length * 100}%` }}>
+              {post.media.map((m: any, idx: number) => (
+                <div key={m.id || idx} className="w-full flex-shrink-0" style={{ width: `${100 / post.media.length}%` }}>
+                  <img src={m.url} alt={`image-${idx}`} className="w-full h-auto object-contain" />
+                </div>
+              ))}
+            </div>
+            {/* Prev/Next touch zones */}
+            <button type="button" className="absolute inset-y-0 left-0 w-1/4" onClick={() => setSlide(s => Math.max(0, s - 1))} aria-label="Prev" />
+            <button type="button" className="absolute inset-y-0 right-0 w-1/4" onClick={() => setSlide(s => Math.min(post.media.length - 1, s + 1))} aria-label="Next" />
+          </div>
+          <div className="mt-2 flex items-center justify-center gap-2">
+            {post.media.map((_: any, i: number) => (
+              <button key={i} onClick={() => setSlide(i)} aria-label={`Vai a immagine ${i+1}`} className={`h-2 w-2 rounded-full ${i===slide ? 'bg-purple-600' : 'bg-white border border-purple-600'}`} />
+            ))}
+          </div>
+        </div>
+      )}
+      {post.mediaUrl && post.mediaType === 'image' && (!post.media || post.media.length <= 1) && (
         <button className="mt-3 block group" onClick={()=>setLightboxOpen(true)} aria-label="Apri immagine a schermo intero">
           <img src={post.mediaUrl} alt="immagine" className="w-full rounded-xl border group-hover:opacity-95 transition" />
         </button>
@@ -287,9 +309,9 @@ export default function PostCard({ post }: { post: any }) {
       )}
       </div>
     </article>
-    {lightboxOpen && post.mediaUrl && post.mediaType === 'image' && (
-      <ImageLightbox src={post.mediaUrl} alt="immagine" onClose={() => setLightboxOpen(false)} />
-    )}
+      {lightboxOpen && post.mediaUrl && post.mediaType === 'image' && (
+        <ImageLightbox src={post.mediaUrl} alt="immagine" onClose={() => setLightboxOpen(false)} />
+      )}
     </>
   )
 }

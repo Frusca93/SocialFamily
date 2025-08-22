@@ -12,8 +12,8 @@ export default function NewPost() {
   const [mentionOpen, setMentionOpen] = useState(false);
   const [mentionList, setMentionList] = useState<any[]>([]);
   const [mediaType, setMediaType] = useState<'image' | 'video'>('image');
-  const [file, setFile] = useState<File | null>(null);
-  const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [showMediaMenu, setShowMediaMenu] = useState(false);
   const [posted, setPosted] = useState(false);
@@ -89,25 +89,28 @@ export default function NewPost() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-  if (file) {
-      // Leggi il file come base64
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64 = reader.result as string;
-        const res = await fetch('/api/posts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content, mediaType, fileBase64: base64 })
-        });
-        setLoading(false);
-        if (res.ok) {
-      setContent(''); setFile(null); setFilePreview(null);
-      setPosted(true);
-      setTimeout(() => { window.location.reload(); }, 800);
-        }
-      };
-      reader.readAsDataURL(file);
-      return;
+  if (files.length > 0) {
+      // Caricamento multiplo immagini: invia tutte come base64 in una singola richiesta
+      const encoded = await Promise.all(files.map(async (f) => {
+        const reader = new FileReader()
+        const p: Promise<string> = new Promise((resolve) => { reader.onloadend = () => resolve(reader.result as string) })
+        reader.readAsDataURL(f)
+        return p
+      }))
+      const res = await fetch('/api/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content, mediaType, filesBase64: encoded })
+      })
+      setLoading(false)
+      if (res.ok) {
+        setContent('')
+        setFiles([])
+        setPreviews([])
+        setPosted(true)
+        setTimeout(() => { window.location.reload() }, 800)
+      }
+      return
     }
     // fallback: nessun file, solo testo
   const res = await fetch('/api/posts', {
@@ -124,14 +127,28 @@ export default function NewPost() {
   }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0];
-    if (f) {
-      setFile(f);
-      setFilePreview(URL.createObjectURL(f));
+    const list = Array.from(e.target.files || [])
+    if (!list.length) return
+    if (mediaType === 'image') {
+      const imgs = list.filter(f => f.type.startsWith('image/'))
+      const nextFiles = [...files, ...imgs]
+      const nextPreviews = [...previews, ...imgs.map(f => URL.createObjectURL(f))]
+      setFiles(nextFiles)
+      setPreviews(nextPreviews)
     } else {
-      setFile(null);
-      setFilePreview(null);
+      const v = list.find(f => f.type.startsWith('video/'))
+      if (v) {
+        setFiles([v])
+        setPreviews([URL.createObjectURL(v)])
+      }
     }
+    // resetta l'input per poter ri-caricare gli stessi file
+    e.currentTarget.value = ''
+  }
+
+  function removePreview(idx: number) {
+    setFiles(prev => prev.filter((_, i) => i !== idx))
+    setPreviews(prev => prev.filter((_, i) => i !== idx))
   }
 
   return (
@@ -197,7 +214,7 @@ export default function NewPost() {
               type="button"
               aria-label={t.image}
               className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-sm transition ${mediaType==='image' ? 'bg-white text-blue-700 shadow-sm border border-blue-200' : 'text-gray-600 hover:text-black'}`}
-              onClick={() => { setMediaType('image'); setFile(null); setFilePreview(null); }}
+              onClick={() => { setMediaType('image'); setFiles([]); setPreviews([]); }}
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
                 <rect x="3" y="5" width="18" height="14" rx="2" />
@@ -210,7 +227,7 @@ export default function NewPost() {
               type="button"
               aria-label={t.video}
               className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-sm transition ${mediaType==='video' ? 'bg-white text-blue-700 shadow-sm border border-blue-200' : 'text-gray-600 hover:text-black'}`}
-              onClick={() => { setMediaType('video'); setFile(null); setFilePreview(null); }}
+              onClick={() => { setMediaType('video'); setFiles([]); setPreviews([]); }}
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
                 <rect x="3" y="5" width="18" height="14" rx="2" />
@@ -272,6 +289,7 @@ export default function NewPost() {
             accept={mediaType === 'image' ? 'image/*' : 'video/*'}
             className="hidden"
             onChange={handleFileChange}
+            multiple={mediaType === 'image'}
           />
           {mediaType === 'image' && (
             <input
@@ -284,12 +302,20 @@ export default function NewPost() {
             />
           )}
 
-          {filePreview && (
-            mediaType === 'image' ? (
-              <img src={filePreview} alt="preview" className="mt-1 max-h-60 rounded-xl border object-contain" />
-            ) : (
-              <video src={filePreview} controls className="mt-1 max-h-60 rounded-xl border object-contain" />
-            )
+          {previews.length > 0 && mediaType === 'image' && (
+            <div className="mt-1 flex flex-wrap gap-2">
+              {previews.map((src, i) => (
+                <div key={i} className="relative">
+                  <img src={src} alt={`preview-${i}`} className="h-24 w-24 rounded-lg border object-cover" />
+                  <button type="button" onClick={() => removePreview(i)} aria-label="Rimuovi immagine" className="absolute -top-2 -right-2 rounded-full bg-white border text-purple-600 hover:bg-purple-50 p-1 shadow">
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          {previews.length > 0 && mediaType === 'video' && (
+            <video src={previews[0]} controls className="mt-1 max-h-60 rounded-xl border object-contain" />
           )}
           {/* rimosso duplicato del pulsante Pubblica su mobile */}
         </div>
