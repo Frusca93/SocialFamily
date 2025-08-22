@@ -238,7 +238,7 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
           {/* Logo solo desktop */}
           <div className="hidden sm:flex items-center">
             <Logo className="h-12 w-12" />
-            <span className="ml-2 text-xl sm:text-2xl font-extrabold align-middle bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent tracking-tight">Alora</span>
+            <span className="ml-2 text-3xl sm:text-[40px] font-extrabold align-middle bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent tracking-tight">Alora</span>
           </div>
 
           {/* Mobile: logo | titolo centrato | notifiche */}
@@ -247,7 +247,7 @@ export default function Navbar({ onScrollToPost }: NavbarProps) {
               <Logo className="h-10 w-10" />
             </div>
             <div className="flex items-center justify-center">
-              <span className="text-2xl font-extrabold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent tracking-tight truncate">Alora</span>
+              <span className="text-3xl font-extrabold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent tracking-tight truncate">Alora</span>
             </div>
             {user?.username && (
               <div className="relative" ref={notiRefMobile}>
