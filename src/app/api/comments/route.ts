@@ -47,11 +47,28 @@ export async function DELETE(req: Request) {
   const { searchParams } = new URL(req.url)
   const commentId = searchParams.get('commentId') || ''
   if (!commentId) return Response.json({ error: 'Missing commentId' }, { status: 400 })
-  const c = await prisma.comment.findUnique({ where: { id: commentId }, include: { replies: { select: { id: true } } } })
+  const c = await prisma.comment.findUnique({ where: { id: commentId } })
   if (!c) return Response.json({ error: 'Not found' }, { status: 404 })
   if (c.authorId !== (session.user as any).id) return Response.json({ error: 'Forbidden' }, { status: 403 })
-  if (c.replies && c.replies.length > 0) return Response.json({ error: 'Impossibile eliminare: ha risposte' }, { status: 400 })
-  await prisma.comment.delete({ where: { id: commentId } })
+  // Collect all descendant replies (multi-level)
+  let currentLevel = [commentId]
+  const levels: string[][] = []
+  // BFS over replies to gather levels of descendants
+  while (currentLevel.length) {
+    const children = await prisma.comment.findMany({ where: { parentId: { in: currentLevel } }, select: { id: true } })
+    const childIds = children.map(ch => ch.id)
+    if (!childIds.length) break
+    levels.push(childIds)
+    currentLevel = childIds
+  }
+  // Build transaction: delete from deepest level up, then delete the root comment
+  const tx: any[] = []
+  for (let i = levels.length - 1; i >= 0; i--) {
+    const ids = levels[i]
+    tx.push(prisma.comment.deleteMany({ where: { id: { in: ids } } }))
+  }
+  tx.push(prisma.comment.delete({ where: { id: commentId } }))
+  await prisma.$transaction(tx)
   return Response.json({ ok: true })
 }
 
