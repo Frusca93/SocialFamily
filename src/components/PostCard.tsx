@@ -113,6 +113,8 @@ export default function PostCard({ post }: { post: any }) {
   const [showLikes, setShowLikes] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [slide, setSlide] = useState(0);
+  const [dragX, setDragX] = useState(0);
+  const startXRef = useRef<number | null>(null);
   async function toggleLike() {
     const res = await fetch(`/api/posts/${post.id}/like`, { method: 'POST' })
     if (!res.ok) return
@@ -187,12 +189,29 @@ export default function PostCard({ post }: { post: any }) {
       <p className="whitespace-pre-line">
         {renderMentions(post.content)}
       </p>
-      {Array.isArray(post.media) && post.media.length > 1 && post.media[0]?.type === 'image' && (
+      {Array.isArray(post.media) && post.media.length > 1 && (post.media[0]?.type === 'image' || !post.media[0]?.type) && (
         <div className="mt-3">
           <div className="relative overflow-hidden rounded-xl border">
-            <div className="flex transition-transform duration-300" style={{ transform: `translateX(-${slide * 100}%)`, width: `${post.media.length * 100}%` }}>
+            <div
+              className="flex transition-transform duration-300"
+              style={{ transform: `translateX(calc(-${slide * 100}% + ${dragX}px))` }}
+              onTouchStart={(e) => { startXRef.current = e.touches[0].clientX; setDragX(0) }}
+              onTouchMove={(e) => {
+                if (startXRef.current == null) return
+                const dx = e.touches[0].clientX - startXRef.current
+                setDragX(dx)
+              }}
+              onTouchEnd={() => {
+                const threshold = 40
+                if (Math.abs(dragX) > threshold) {
+                  if (dragX < 0) setSlide(s => Math.min(post.media.length - 1, s + 1))
+                  else setSlide(s => Math.max(0, s - 1))
+                }
+                setDragX(0); startXRef.current = null
+              }}
+            >
               {post.media.map((m: any, idx: number) => (
-                <div key={m.id || idx} className="w-full flex-shrink-0" style={{ width: `${100 / post.media.length}%` }}>
+                <div key={m.id || idx} className="w-full shrink-0 grow-0 basis-full">
                   <img src={m.url} alt={`image-${idx}`} className="w-full h-auto object-contain" />
                 </div>
               ))}
