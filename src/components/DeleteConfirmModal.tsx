@@ -30,15 +30,18 @@ const translations = {
   }
 }
 
-export default function DeleteConfirmModal({ onConfirm, onCancel, loading = false, error }: { onConfirm: () => void, onCancel: () => void, loading?: boolean, error?: string }) {
+export default function DeleteConfirmModal({ onConfirm, onCancel, loading = false, error, title, message, confirmLabel }: { onConfirm: () => void, onCancel: () => void, loading?: boolean, error?: string, title?: string, message?: string, confirmLabel?: string }) {
   const { lang } = useContext(LanguageContext);
   const t = translations[lang as keyof typeof translations] || translations.it;
+  const resolvedTitle = title || t.title;
+  const resolvedMessage = message || t.message;
+  const resolvedConfirm = confirmLabel || t.confirm;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="bg-white rounded-2xl p-6 shadow-xl min-w-[300px] relative">
   <button type="button" onClick={onCancel} className="absolute top-2 right-2 text-xl font-bold text-gray-500 hover:text-gray-800">×</button>
-        <h2 className="text-lg font-semibold mb-4">{t.title}</h2>
-        <p className="mb-4">{t.message}</p>
+        <h2 className="text-lg font-semibold mb-4">{resolvedTitle}</h2>
+        <p className="mb-4">{resolvedMessage}</p>
         {error && (
           <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>
         )}
@@ -50,7 +53,7 @@ export default function DeleteConfirmModal({ onConfirm, onCancel, loading = fals
             disabled={loading}
             className={`rounded-xl px-4 py-2 text-white font-semibold ${loading ? 'bg-red-400 opacity-60 cursor-not-allowed' : 'bg-red-600'}`}
           >
-            {loading ? t.confirm + '…' : t.confirm}
+            {loading ? resolvedConfirm + '…' : resolvedConfirm}
           </button>
         </div>
       </div>

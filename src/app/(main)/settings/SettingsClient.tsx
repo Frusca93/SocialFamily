@@ -1,8 +1,9 @@
 "use client";
 import { useState, useRef, useContext, useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { LanguageContext } from '@/app/LanguageContext';
+import DeleteConfirmModal from '@/components/DeleteConfirmModal';
 
 const LANGS = [
   { code: "it", label: "Italiano" },
@@ -18,14 +19,17 @@ const translations = {
     language: "Lingua",
     bio: "Bio",
     bioPlaceholder: "(opzionale)",
-    image: "Immagine profilo",
-    imagePlaceholder: "URL immagine (opzionale)",
+  image: "Immagine profilo",
     upload: "Carica file",
     save: "Salva le modifiche",
     saved: "Impostazioni salvate!",
     error: "Errore nel salvataggio delle impostazioni",
     errorImage: "Errore nel caricamento dell'immagine",
     errorUsername: "Username già in uso",
+  deleteAccount: "Elimina il mio account",
+  deleteTitle: "Conferma eliminazione account",
+  deleteMessage: "Sei sicuro di voler eliminare definitivamente il tuo account? Questa azione è irreversibile e rimuoverà tutti i tuoi dati (post, commenti, like, messaggi, notifiche, ecc.).",
+  deleteConfirm: "Elimina account"
   },
   en: {
     title: "Profile settings",
@@ -33,14 +37,17 @@ const translations = {
     language: "Language",
     bio: "Bio",
     bioPlaceholder: "(optional)",
-    image: "Profile image",
-    imagePlaceholder: "Image URL (optional)",
+  image: "Profile image",
     upload: "Upload file",
     save: "Save changes",
     saved: "Settings saved!",
     error: "Error saving settings",
     errorImage: "Error uploading image",
     errorUsername: "Username already in use",
+  deleteAccount: "Delete my account",
+  deleteTitle: "Confirm account deletion",
+  deleteMessage: "Are you sure you want to permanently delete your account? This action is irreversible and will remove all your data (posts, comments, likes, messages, notifications, etc.).",
+  deleteConfirm: "Delete account"
   },
   fr: {
     title: "Paramètres du profil",
@@ -48,14 +55,17 @@ const translations = {
     language: "Langue",
     bio: "Bio",
     bioPlaceholder: "(optionnel)",
-    image: "Image de profil",
-    imagePlaceholder: "URL de l'image (optionnel)",
+  image: "Image de profil",
     upload: "Télécharger un fichier",
     save: "Enregistrer les modifications",
     saved: "Paramètres enregistrés !",
     error: "Erreur lors de l'enregistrement des paramètres",
     errorImage: "Erreur lors du téléchargement de l'image",
     errorUsername: "Nom d'utilisateur déjà utilisé",
+  deleteAccount: "Supprimer mon compte",
+  deleteTitle: "Confirmer la suppression du compte",
+  deleteMessage: "Êtes-vous sûr de vouloir supprimer définitivement votre compte ? Cette action est irréversible et supprimera toutes vos données (posts, commentaires, likes, messages, notifications, etc.).",
+  deleteConfirm: "Supprimer le compte"
   },
   es: {
     title: "Configuración de perfil",
@@ -63,14 +73,17 @@ const translations = {
     language: "Idioma",
     bio: "Bio",
     bioPlaceholder: "(opcional)",
-    image: "Imagen de perfil",
-    imagePlaceholder: "URL de la imagen (opcional)",
+  image: "Imagen de perfil",
     upload: "Subir archivo",
     save: "Guardar cambios",
     saved: "¡Configuración guardada!",
     error: "Error al guardar la configuración",
     errorImage: "Error al subir la imagen",
     errorUsername: "Nombre de usuario ya en uso",
+  deleteAccount: "Eliminar mi cuenta",
+  deleteTitle: "Confirmar eliminación de cuenta",
+  deleteMessage: "¿Seguro que quieres eliminar permanentemente tu cuenta? Esta acción es irreversible y eliminará todos tus datos (publicaciones, comentarios, me gusta, mensajes, notificaciones, etc.).",
+  deleteConfirm: "Eliminar cuenta"
   },
 };
 
@@ -94,6 +107,9 @@ export default function SettingsClient({ user, onSave }: any) {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -131,13 +147,7 @@ export default function SettingsClient({ user, onSave }: any) {
       setLoading(false);
       return;
     }
-    if (!file && image) {
-      await fetch("/api/profile/image", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image })
-      });
-    }
+  // No URL input anymore: image is updated only via avatar upload.
     setSuccess(true);
     setLoading(false);
     setLang(language);
@@ -177,17 +187,59 @@ export default function SettingsClient({ user, onSave }: any) {
       <label className="font-semibold">{t.bio}</label>
       <textarea value={bio} onChange={e=>setBio(e.target.value)} className="rounded-xl border px-3 py-2" rows={3} maxLength={200} placeholder={t.bioPlaceholder} />
       <label className="font-semibold">{t.image}</label>
-      <div className="flex gap-2 items-center">
-        <input value={file ? '' : image} onChange={e=>{ setImage(e.target.value); setFile(null); setFilePreview(null) }} placeholder={t.imagePlaceholder} className="rounded-xl border px-3 py-2 flex-1" />
-        <button type="button" className="rounded-xl border bg-blue-100 px-3 py-2 text-blue-700" onClick={()=>fileInputRef.current?.click()}>{t.upload}</button>
+      <div className="flex flex-col items-center gap-3">
+        {(filePreview || image) && (
+          <img
+            src={filePreview || image}
+            alt="preview"
+            className="mt-1 h-32 w-32 rounded-full border object-cover"
+          />
+        )}
+        <button
+          type="button"
+          className="rounded-xl border bg-blue-100 px-4 py-2 text-blue-700"
+          onClick={()=>fileInputRef.current?.click()}
+        >
+          {t.upload}
+        </button>
         <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
       </div>
-      {(filePreview || image) && (
-        <img src={filePreview || image} alt="preview" className="mt-2 max-h-32 rounded-xl border object-contain" />
-      )}
-  <button disabled={loading} className="mt-4 rounded-xl bg-purple-600 px-4 py-2 font-semibold text-white disabled:opacity-50">{t.save}</button>
+      <button disabled={loading} className="mt-4 rounded-xl bg-purple-600 px-4 py-2 font-semibold text-white disabled:opacity-50">{t.save}</button>
+      <button
+        type="button"
+        onClick={()=>{ setDeleteError(null); setShowDeleteModal(true); }}
+        className="mt-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2 font-semibold text-red-700 hover:bg-red-100"
+      >
+        {t.deleteAccount}
+      </button>
       {success && <div className="text-green-600 font-semibold">{t.saved}</div>}
       {error && <div className="text-red-600 font-semibold">{error}</div>}
+      {showDeleteModal && (
+        <DeleteConfirmModal
+          onCancel={()=>{ if (!deleting) setShowDeleteModal(false); }}
+          onConfirm={async ()=>{
+            setDeleting(true);
+            setDeleteError(null);
+            try {
+              const res = await fetch('/api/profile/delete', { method: 'POST' });
+              if (!res.ok) {
+                const j = await res.json().catch(()=>null);
+                throw new Error(j?.error || 'Delete failed');
+              }
+              // Redirect to login after sign out
+              await signOut({ callbackUrl: '/login' });
+            } catch (err: any) {
+              setDeleteError(err?.message || 'Errore eliminazione');
+              setDeleting(false);
+            }
+          }}
+          loading={deleting}
+          error={deleteError || undefined}
+          title={t.deleteTitle}
+          message={t.deleteMessage}
+          confirmLabel={t.deleteConfirm}
+        />
+      )}
     </form>
   );
 }
