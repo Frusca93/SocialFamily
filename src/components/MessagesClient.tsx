@@ -109,7 +109,8 @@ export default function MessagesClient({ initialItems = [] as ConversationListIt
     if (!pickerOpen) return
     const id = setTimeout(async () => {
       const q = pickerQ.trim()
-  const r = await fetch('/api/search' + (q ? `?q=${encodeURIComponent(q)}` : ''), { cache: 'no-store' })
+      const url = '/api/search' + (q ? `?q=${encodeURIComponent(q)}&followingOnly=1` : `?followingOnly=1`)
+      const r = await fetch(url, { cache: 'no-store' })
       const j = await r.json().catch(() => ({ users: [] }))
       setPickerUsers(j.users || [])
     }, 200)
