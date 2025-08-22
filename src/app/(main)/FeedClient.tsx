@@ -6,10 +6,10 @@ import { LanguageContext } from '@/app/LanguageContext';
 import { useContext, useEffect, useState, useImperativeHandle, forwardRef, useRef } from 'react';
 
 const translations = {
-  it: { noPosts: 'Nessun post trovato', explore: 'Esplora' },
-  en: { noPosts: 'No posts found', explore: 'Explore' },
-  fr: { noPosts: 'Aucun post trouvé', explore: 'Explorer' },
-  es: { noPosts: 'Ningún post encontrado', explore: 'Explorar' },
+  it: { noPosts: 'Nessun post trovato', explore: 'Esplora', searchPlaceholder: 'trova i tuoi amici', users: 'Utenti', posts: 'Post', noResults: 'Nessun risultato', searchError: 'Errore ricerca' },
+  en: { noPosts: 'No posts found', explore: 'Explore', searchPlaceholder: 'find your friends', users: 'Users', posts: 'Posts', noResults: 'No results', searchError: 'Search error' },
+  fr: { noPosts: 'Aucun post trouvé', explore: 'Explorer', searchPlaceholder: 'trouve tes amis', users: 'Utilisateurs', posts: 'Posts', noResults: 'Aucun résultat', searchError: 'Erreur de recherche' },
+  es: { noPosts: 'Ningún post encontrado', explore: 'Explorar', searchPlaceholder: 'encuentra a tus amigos', users: 'Usuarios', posts: 'Publicaciones', noResults: 'Sin resultados', searchError: 'Error de búsqueda' },
 };
 
 const FeedClient = forwardRef(function FeedClient({ posts }: { posts: any[] }, ref) {
@@ -136,7 +136,7 @@ const FeedClient = forwardRef(function FeedClient({ posts }: { posts: any[] }, r
               ref={inputRef}
               value={q}
               onChange={(e)=>setQ(e.target.value)}
-              placeholder={"trova i tuoi amici"}
+              placeholder={t.searchPlaceholder}
               className="w-full rounded-full border bg-white pl-9 pr-10 py-2 text-[16px] shadow"
             />
             {q && (
@@ -168,7 +168,7 @@ const FeedClient = forwardRef(function FeedClient({ posts }: { posts: any[] }, r
                   ref={inputRef}
                   value={q}
                   onChange={(e)=>setQ(e.target.value)}
-                  placeholder={"trova i tuoi amici"}
+                  placeholder={t.searchPlaceholder}
                   className="w-full rounded-full border bg-white pl-9 pr-10 py-2 text-[16px] shadow"
                 />
                 {q && (
@@ -192,7 +192,7 @@ const FeedClient = forwardRef(function FeedClient({ posts }: { posts: any[] }, r
               (results.users.length > 0 || results.posts.length > 0) ? (
                 <div className="grid grid-cols-1 gap-2 text-sm">
                   <div>
-                    <h4 className="mb-1 font-semibold">Utenti</h4>
+                    <h4 className="mb-1 font-semibold">{t.users}</h4>
                     <ul className="space-y-1">
                       {results.users.map((u: any) => (
                         <li key={u.id}>
@@ -212,7 +212,7 @@ const FeedClient = forwardRef(function FeedClient({ posts }: { posts: any[] }, r
                     </ul>
                   </div>
                   <div>
-                    <h4 className="mb-1 font-semibold">Post</h4>
+                    <h4 className="mb-1 font-semibold">{t.posts}</h4>
                     <ul className="space-y-1">
                       {results.posts.map((p: any) => (
                         <li key={p.id} className="truncate">{p.content}</li>
@@ -221,10 +221,10 @@ const FeedClient = forwardRef(function FeedClient({ posts }: { posts: any[] }, r
                   </div>
                 </div>
               ) : (
-                <div className="text-center text-gray-500">Nessun risultato</div>
+                <div className="text-center text-gray-500">{t.noResults}</div>
               )
             ) : (
-              <div className="text-center text-red-500">Errore ricerca</div>
+              <div className="text-center text-red-500">{t.searchError}</div>
             )}
           </div>
         )}
