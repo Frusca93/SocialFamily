@@ -405,18 +405,18 @@ function InlineComments({ postId, onReplyPosted }: { postId: string; onReplyPost
       }
     }
     load()
-  timer = setInterval(load, 5000)
+    timer = setInterval(load, 5000)
     return () => clearInterval(timer)
   }, [postId])
 
-  const grouped = useMemo(() => {
-    const byParent: Record<string, any[]> = {}
+  const byParent = useMemo(() => {
+    const map: Record<string, any[]> = {}
     for (const c of items) {
       const key = (c as any).parentId || 'root'
-      if (!byParent[key]) byParent[key] = []
-      byParent[key].push(c)
+      if (!map[key]) map[key] = []
+      map[key].push(c)
     }
-    return { roots: byParent['root'] || [], byParent }
+    return map
   }, [items])
 
   const refresh = async () => {
@@ -448,8 +448,8 @@ function InlineComments({ postId, onReplyPosted }: { postId: string; onReplyPost
 
   async function sendReply(parentId: string) {
     if (!replyText.trim()) return
-  if (replyPosting) return
-  setReplyPosting(true)
+    if (replyPosting) return
+    setReplyPosting(true)
     const res = await fetch('/api/comments', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -459,14 +459,55 @@ function InlineComments({ postId, onReplyPosted }: { postId: string; onReplyPost
       setReplyFor(null)
       setReplyText('')
       onReplyPosted()
-      // refresh list
-      try {
-        const r = await fetch(`/api/comments?postId=${encodeURIComponent(postId)}`, { cache: 'no-store' })
-        if (r.ok) setItems(await r.json())
-      } catch {}
+      try { await refresh() } catch {}
     }
-  setReplyPosting(false)
+    setReplyPosting(false)
   }
+
+  const ReplyForm = ({ targetId }: { targetId: string }) => (
+    replyFor === targetId ? (
+      <form onSubmit={(e)=>{ e.preventDefault(); sendReply(targetId) }} className="mt-2 flex gap-2">
+        <input value={replyText} onChange={e=>setReplyText(e.target.value)} placeholder={t.writeReply} className="flex-1 rounded-xl border px-3 py-1.5 text-sm" />
+        <button disabled={!replyText.trim() || replyPosting} className="rounded-xl border px-3 py-1.5 text-sm disabled:opacity-60">{t.send}</button>
+      </form>
+    ) : null
+  )
+
+  const Thread = ({ c, depth = 0 }: { c: any; depth?: number }) => (
+    <div className={depth === 0 ? 'border-b pb-2 last:border-b-0' : 'mt-2 ml-4 pl-3 border-l'}>
+      <div className="flex items-start gap-2">
+        <div className="flex-1">
+          <div className={depth === 0 ? 'font-semibold text-sm' : 'font-semibold text-sm'}>
+            {c.author?.name || t.anonymous} <span className={depth === 0 ? 'text-[11px] text-gray-400' : 'text-[10px] text-gray-400'}>@{c.author?.username}</span>
+          </div>
+          <div className="text-sm text-gray-700">{renderMentions(c.content)}</div>
+          <div className="text-xs text-gray-400">{c.createdAt ? new Date(c.createdAt).toLocaleString() : ''}</div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => toggleLike(c.id)}
+            className={`px-2 py-0.5 rounded-full border ${depth === 0 ? 'text-xs' : 'text-[11px]'} flex items-center gap-1 cursor-pointer ${c.myLiked ? 'border-purple-500 text-purple-600' : 'border-purple-300 text-purple-500'}`}
+            style={{ borderWidth: 0.5 }}
+            aria-label="Mi piace"
+          >
+            {c.myLiked ? <AiFillHeart className="text-purple-600" /> : <AiOutlineHeart className="text-purple-500" />}
+            <span>{c.likesCount || 0}</span>
+          </button>
+          <button type="button" className={`${depth === 0 ? 'text-xs' : 'text-[11px]'} text-blue-600 hover:underline cursor-pointer`} onClick={() => { setReplyFor(c.id); setReplyText('') }}>{t.reply}</button>
+          {canDelete(c) && (
+            <button type="button" className={`${depth === 0 ? 'text-xs' : 'text-[11px]'} text-red-600 hover:text-red-700 flex items-center gap-1 cursor-pointer`} onClick={() => onDelete(c.id)} aria-label="Elimina commento">
+              <FiTrash2 />
+            </button>
+          )}
+        </div>
+      </div>
+      <ReplyForm targetId={c.id} />
+      {(byParent[c.id] || []).map((child: any) => (
+        <Thread key={child.id} c={child} depth={(depth || 0) + 1} />
+      ))}
+    </div>
+  )
 
   return (
     <div className="mt-3 rounded-xl border bg-gray-50 p-3">
@@ -476,75 +517,8 @@ function InlineComments({ postId, onReplyPosted }: { postId: string; onReplyPost
         <div className="text-sm text-gray-500">{error ? error : t.noComments}</div>
       ) : (
         <div className="space-y-3">
-          {grouped.roots.map((c: any) => (
-            <div key={c.id} className="border-b pb-2 last:border-b-0">
-              <div className="flex items-start gap-2">
-                <div className="flex-1">
-                  <div className="font-semibold text-sm">{c.author?.name || t.anonymous} <span className="text-[11px] text-gray-400">@{c.author?.username}</span></div>
-                  <div className="text-sm text-gray-700">{renderMentions(c.content)}</div>
-                  <div className="text-xs text-gray-400">{c.createdAt ? new Date(c.createdAt).toLocaleString() : ''}</div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => toggleLike(c.id)}
-                    className={`px-2 py-0.5 rounded-full border text-xs flex items-center gap-1 cursor-pointer ${c.myLiked ? 'border-purple-500 text-purple-600' : 'border-purple-300 text-purple-500'}`}
-                    style={{ borderWidth: 0.5 }}
-                    aria-label="Mi piace"
-                  >
-                    {c.myLiked ? <AiFillHeart className="text-purple-600" /> : <AiOutlineHeart className="text-purple-500" />}
-                    <span>{c.likesCount || 0}</span>
-                  </button>
-                  <button type="button" className="text-xs text-blue-600 hover:underline cursor-pointer" onClick={() => { setReplyFor(c.id); setReplyText('') }}>{t.reply}</button>
-                  {canDelete(c) && (
-                    <button type="button" className="text-xs text-red-600 hover:text-red-700 flex items-center gap-1 cursor-pointer" onClick={() => onDelete(c.id)} aria-label="Elimina commento">
-                      <FiTrash2 />
-                    </button>
-                  )}
-                </div>
-              </div>
-              {replyFor === c.id && (
-                <form onSubmit={(e) => { e.preventDefault(); sendReply(c.id); }} className="mt-2 flex gap-2">
-                  <input value={replyText} onChange={e=>setReplyText(e.target.value)} placeholder={t.writeReply} className="flex-1 rounded-xl border px-3 py-1.5 text-sm" />
-                  <button disabled={!replyText.trim() || replyPosting} className="rounded-xl border px-3 py-1.5 text-sm disabled:opacity-60">{t.send}</button>
-                </form>
-              )}
-              {(grouped.byParent[c.id] || []).map((rc: any) => (
-                <div key={rc.id} className="mt-2 ml-4 pl-3 border-l space-y-1">
-                  <div className="flex items-start gap-2">
-                    <div className="flex-1">
-                      <div className="font-semibold text-sm">{rc.author?.name || t.anonymous} <span className="text-[10px] text-gray-400">@{rc.author?.username}</span></div>
-                      <div className="text-sm text-gray-700">{renderMentions(rc.content)}</div>
-                      <div className="text-xs text-gray-400">{rc.createdAt ? new Date(rc.createdAt).toLocaleString() : ''}</div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => toggleLike(rc.id)}
-                        className={`px-2 py-0.5 rounded-full border text-[11px] flex items-center gap-1 cursor-pointer ${rc.myLiked ? 'border-purple-500 text-purple-600' : 'border-purple-300 text-purple-500'}`}
-                        style={{ borderWidth: 0.5 }}
-                        aria-label="Mi piace"
-                      >
-                        {rc.myLiked ? <AiFillHeart className="text-purple-600" /> : <AiOutlineHeart className="text-purple-500" />}
-                        <span>{rc.likesCount || 0}</span>
-                      </button>
-                      <button type="button" className="text-[11px] text-blue-600 hover:underline cursor-pointer" onClick={() => { setReplyFor(rc.id); setReplyText('') }}>{t.reply}</button>
-                      {canDelete(rc) && (
-                        <button type="button" className="text-[11px] text-red-600 hover:text-red-700 flex items-center gap-1 cursor-pointer" onClick={() => onDelete(rc.id)} aria-label="Elimina commento">
-                          <FiTrash2 />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                  {replyFor === rc.id && (
-                    <form onSubmit={(e) => { e.preventDefault(); sendReply(rc.id); }} className="mt-2 flex gap-2">
-                      <input value={replyText} onChange={e=>setReplyText(e.target.value)} placeholder={t.writeReply} className="flex-1 rounded-xl border px-3 py-1.5 text-sm" />
-                      <button disabled={!replyText.trim() || replyPosting} className="rounded-xl border px-3 py-1.5 text-sm disabled:opacity-60">{t.send}</button>
-                    </form>
-                  )}
-                </div>
-              ))}
-            </div>
+          {(byParent['root'] || []).map((c: any) => (
+            <Thread key={c.id} c={c} />
           ))}
         </div>
       )}
