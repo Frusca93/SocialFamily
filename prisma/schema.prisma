@@ -153,6 +153,7 @@ model ConversationParticipant {
   conversationId String
   user           User         @relation("ConversationParticipantsUser", fields: [userId], references: [id], onDelete: Cascade)
   userId         String
+  hiddenAt       DateTime?
 
   @@id([conversationId, userId])
 }

@@ -12,7 +12,7 @@ export async function GET(req: Request) {
   const q = (searchParams.get('q') || '').toLowerCase()
 
   const convs = await (prisma as any).conversation.findMany({
-    where: { participants: { some: { userId } } },
+    where: { participants: { some: { userId, hiddenAt: null } } },
     orderBy: { updatedAt: 'desc' },
     include: {
       participants: { include: { user: { select: { id: true, name: true, username: true, image: true } } } },

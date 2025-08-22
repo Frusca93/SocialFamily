@@ -48,3 +48,16 @@ export async function POST(req: Request, { params }: { params: { id: string } })
   } catch {}
   return Response.json({ message: msg })
 }
+
+export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+  const session = await getServerSession(authOptions)
+  if (!session?.user) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  const userId = (session.user as any).id as string
+  const id = params.id
+  // Soft-delete: nasconde la conversazione per l'utente
+  await (prisma as any).conversationParticipant.update({
+    where: { conversationId_userId: { conversationId: id, userId } },
+    data: { hiddenAt: new Date() }
+  }).catch(()=>{})
+  return Response.json({ ok: true })
+}

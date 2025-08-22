@@ -122,7 +122,13 @@ export default function CommentsModal({ postId, onClose }: { postId: string, onC
   }
 
   const Thread = ({ c, depth = 0 }: { c: CommentT; depth?: number }) => (
-    <div className={depth === 0 ? 'border-b pb-2' : 'mt-2 pl-3 border-l-2 border-violet-400'}>
+    <div className={
+      depth === 0
+        ? 'border-b pb-2'
+        : depth === 1
+          ? 'mt-2 pl-3 border-l-2 border-violet-400'
+          : 'mt-2 pl-3'
+    }>
       <div className="flex items-start gap-2">
         <div className="flex-1">
           <div className={depth === 0 ? 'font-semibold' : 'font-semibold text-sm'}>
