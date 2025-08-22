@@ -250,23 +250,25 @@ export default function PostCard({ post }: { post: any }) {
           )
       )}
       <footer className="mt-3 flex items-center justify-between text-sm">
-        {/* Likes a sinistra */}
-        <div className="flex items-center gap-2">
+        {/* Like pill (icon + count) */}
+        <div
+          className={`flex items-center gap-1 px-2 py-0.5 rounded-full border ${liked ? 'border-purple-500 text-purple-600' : 'border-purple-300 text-purple-500'}`}
+        >
           <button
             onClick={toggleLike}
-            className="p-2 rounded-full hover:bg-gray-100"
+            className="p-1 rounded-full hover:bg-purple-50"
             aria-label={t.like}
             title={t.like}
           >
             {liked ? (
-              <FaHeart className="w-5 h-5 text-red-500" />
+              <AiFillHeart className="w-5 h-5 text-purple-600" />
             ) : (
-              <FaRegHeart className="w-5 h-5 text-gray-700" />
+              <AiOutlineHeart className="w-5 h-5 text-purple-500" />
             )}
           </button>
           <button
             onClick={() => setShowLikes(true)}
-            className="px-2 py-0.5 rounded text-xs font-semibold text-gray-700 hover:bg-gray-100"
+            className="px-1 text-xs font-semibold hover:underline"
             aria-label="Vedi chi ha messo Mi Piace"
             title="Vedi Mi piace"
           >
@@ -274,18 +276,16 @@ export default function PostCard({ post }: { post: any }) {
           </button>
         </div>
 
-        {/* Commenti a destra */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowComments(v => !v)}
-            className="p-2 rounded-full hover:bg-gray-100"
-            aria-label={t.comments}
-            title={t.comments}
-          >
-            <BsChatDots className="w-5 h-5 text-gray-700" />
-          </button>
-          <span className="text-xs font-semibold text-gray-700">{comments}</span>
-        </div>
+        {/* Comment pill (icon + count) */}
+        <button
+          onClick={() => setShowComments(v => !v)}
+          className="flex items-center gap-1 px-2 py-0.5 rounded-full border border-purple-300 text-purple-600 hover:bg-purple-50"
+          aria-label={t.comments}
+          title={t.comments}
+        >
+          <BsChatDots className="w-5 h-5 text-purple-600" />
+          <span className="text-xs font-semibold">{comments}</span>
+        </button>
         {showLikes && <LikesModal postId={post.id} onClose={() => setShowLikes(false)} />}
       </footer>
     <form onSubmit={addComment} className="mt-2 flex gap-2 relative">
