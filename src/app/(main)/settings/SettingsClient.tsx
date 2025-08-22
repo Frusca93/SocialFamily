@@ -15,6 +15,7 @@ const LANGS = [
 const translations = {
   it: {
     title: "Impostazioni profilo",
+  name: "Nome",
     username: "Username",
     language: "Lingua",
     bio: "Bio",
@@ -33,6 +34,7 @@ const translations = {
   },
   en: {
     title: "Profile settings",
+  name: "Name",
     username: "Username",
     language: "Language",
     bio: "Bio",
@@ -51,6 +53,7 @@ const translations = {
   },
   fr: {
     title: "Paramètres du profil",
+  name: "Nom",
     username: "Nom d'utilisateur",
     language: "Langue",
     bio: "Bio",
@@ -69,6 +72,7 @@ const translations = {
   },
   es: {
     title: "Configuración de perfil",
+  name: "Nombre",
     username: "Nombre de usuario",
     language: "Idioma",
     bio: "Bio",
@@ -92,6 +96,7 @@ export default function SettingsClient({ user, onSave }: any) {
   const router = useRouter();
   const { lang, setLang } = useContext(LanguageContext);
   const t = translations[lang as keyof typeof translations] || translations.it;
+  const [name, setName] = useState<string>(user?.name ?? "");
   const [username, setUsername] = useState(user?.username ?? "");
   const [bio, setBio] = useState(user?.bio ?? "");
   const [language, setLanguage] = useState(user?.language ?? "it");
@@ -135,7 +140,7 @@ export default function SettingsClient({ user, onSave }: any) {
     const res = await fetch("/api/profile/settings", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: usernameToSend, bio, language })
+  body: JSON.stringify({ name, username: usernameToSend, bio, language })
     });
     if (!res.ok) {
       const err = await res.json().catch(() => null);
@@ -171,6 +176,16 @@ export default function SettingsClient({ user, onSave }: any) {
 
   return (
   <form onSubmit={handleSave} className="max-w-lg mx-auto rounded-2xl border bg-white p-6 flex flex-col gap-4">
+      <label className="font-semibold">{t.name}</label>
+      <input
+        value={name}
+        onChange={e => setName(e.target.value)}
+        className="rounded-xl border px-3 py-2"
+        minLength={1}
+        maxLength={60}
+        autoComplete="name"
+        placeholder={user?.name || t.name}
+      />
       <label className="font-semibold">{t.username}</label>
       <input
         value={username}
