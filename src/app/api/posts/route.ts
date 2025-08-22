@@ -136,8 +136,8 @@ export async function POST(req: Request) {
                   title: 'Nuovo post',
                   body: msg,
                   url: `/?post=${post.id}`,
-                  icon: '/sf_logo.png',
-                  badge: '/sf_logo.png'
+                  icon: '/Alora.png',
+                  badge: '/Alora.png'
                 })))
               }
             } catch {}

@@ -57,8 +57,8 @@ export async function POST(req: Request) {
             title: 'Nuova richiesta di follow',
             body: `${(session.user as any).name || 'Qualcuno'} vuole seguirti`,
             url: `/`,
-            icon: '/sf_logo.png',
-            badge: '/sf_logo.png'
+            icon: '/Alora.png',
+            badge: '/Alora.png'
           })));
         }
       } catch {}
@@ -92,8 +92,8 @@ export async function POST(req: Request) {
           title: 'Nuova richiesta di follow',
           body: `${(session.user as any).name || 'Qualcuno'} vuole seguirti`,
           url: `/`,
-          icon: '/sf_logo.png',
-          badge: '/sf_logo.png'
+          icon: '/Alora.png',
+          badge: '/Alora.png'
         })));
       }
     } catch {}

@@ -39,8 +39,8 @@ export async function POST(_: Request, { params }: { params: { postId: string } 
         title,
         body,
         url: `/?post=${postId}`,
-        icon: '/sf_logo.png',
-        badge: '/sf_logo.png'
+  icon: '/Alora.png',
+  badge: '/Alora.png'
       })))
     } catch {}
   }

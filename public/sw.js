@@ -9,11 +9,11 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('push', (event) => {
   let data = {};
   try { data = event.data ? event.data.json() : {}; } catch {}
-  const title = data.title || 'Social Family';
+  const title = data.title || 'Alora';
   const body = data.body || 'Hai una nuova notifica';
   const url = data.url || '/messages';
-  const icon = data.icon || '/sf_logo.png';
-  const badge = data.badge || '/sf_logo.png';
+  const icon = data.icon || '/Alora.png';
+  const badge = data.badge || '/Alora.png';
   event.waitUntil(
     self.registration.showNotification(title, {
       body,

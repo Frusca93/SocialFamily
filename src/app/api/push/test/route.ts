@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   }
   const subs = await (prisma as any).pushSubscription.findMany({ where: { userId } });
   if (subs.length === 0) return NextResponse.json({ ok: false, reason: 'NO_SUBS' });
-  const payload = { title: 'Test push', body: 'Funziona! Tocca per aprire i messaggi.', url: '/messages', icon: '/sf_logo.png', badge: '/sf_logo.png' };
+  const payload = { title: 'Test push', body: 'Funziona! Tocca per aprire i messaggi.', url: '/messages', icon: '/Alora.png', badge: '/Alora.png' };
   const results = await Promise.all(subs.map((s: any) => sendPush({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload)));
   return NextResponse.json({ ok: true, results });
 }

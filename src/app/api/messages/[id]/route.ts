@@ -41,8 +41,8 @@ export async function POST(req: Request, { params }: { params: { id: string } })
         title: 'Nuovo messaggio',
         body: content.length > 80 ? content.slice(0, 77) + '…' : content,
         url: `/messages/${id}`,
-        icon: '/sf_logo.png',
-        badge: '/sf_logo.png'
+  icon: '/Alora.png',
+  badge: '/Alora.png'
       })));
     }
   } catch {}

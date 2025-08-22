@@ -23,15 +23,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="it">
       <head>
         <link rel="icon" href="/favicon.ico" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/logo2.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/Alora.png" />
   <link rel="manifest" href="/manifest.json" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <link rel="apple-touch-icon" href="/sf_logo.png" />
-        <meta property="og:image" content="/logo2.png" />
+  <link rel="apple-touch-icon" href="/Alora.png" />
+  <meta property="og:image" content="/Alora.png" />
   <meta name="theme-color" content="#ffffff" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-        <title>SocialFamily</title>
+  <title>Alora</title>
       </head>
   <body className="min-h-screen bg-gray-50 text-gray-900 safe-pt safe-pb">
         <SessionProvider>

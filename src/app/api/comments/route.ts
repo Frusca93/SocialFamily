@@ -85,8 +85,8 @@ export async function POST(req: Request) {
             title: 'Nuova risposta',
             body: notif.message,
             url: `/?post=${postId}`,
-            icon: '/sf_logo.png',
-            badge: '/sf_logo.png'
+            icon: '/Alora.png',
+            badge: '/Alora.png'
           })))
         } catch {}
       }
@@ -108,8 +108,8 @@ export async function POST(req: Request) {
             title: 'Nuovo commento',
             body: notif.message,
             url: `/?post=${postId}`,
-            icon: '/sf_logo.png',
-            badge: '/sf_logo.png'
+            icon: '/Alora.png',
+            badge: '/Alora.png'
           })))
         } catch {}
       }
@@ -141,8 +141,8 @@ export async function POST(req: Request) {
             title: 'Sei stato menzionato',
             body: `${(session.user as any).name || 'Qualcuno'} ti ha menzionato in un commento`,
             url: `/?post=${postId}`,
-            icon: '/sf_logo.png',
-            badge: '/sf_logo.png'
+            icon: '/Alora.png',
+            badge: '/Alora.png'
           })))
         }
       } catch {}

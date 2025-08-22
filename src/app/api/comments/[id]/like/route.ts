@@ -44,8 +44,8 @@ export async function POST(
             title: 'Nuovo Mi piace',
             body: notif.message || 'Hai ricevuto un nuovo Mi piace',
             url: `/?post=${comment.postId}`,
-            icon: '/sf_logo.png',
-            badge: '/sf_logo.png'
+            icon: '/Alora.png',
+            badge: '/Alora.png'
           })))
         } catch {}
       } catch {}
