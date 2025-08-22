@@ -92,12 +92,27 @@ export default function NewPost() {
     setLoading(true);
     setError(null);
   if (files.length > 0) {
-      // FormData per caricare file multipli (immagini)
-      const fd = new FormData()
-      fd.set('content', content)
-      fd.set('mediaType', mediaType)
-      files.forEach(f => fd.append('files', f))
-      const res = await fetch('/api/posts', { method: 'POST', body: fd })
+      // Carico singolarmente ogni file su /api/upload e poi mando solo gli URL a /api/posts
+      const urls: string[] = []
+      for (const f of files) {
+        const ufd = new FormData()
+        ufd.set('file', f)
+        ufd.set('type', mediaType)
+        const up = await fetch('/api/upload', { method: 'POST', body: ufd })
+        if (!up.ok) {
+          const j = await up.json().catch(() => ({} as any))
+          setLoading(false)
+          setError(j.error || 'Errore upload immagine')
+          return
+        }
+        const j = await up.json()
+        urls.push(j.url)
+      }
+      const res = await fetch('/api/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content, mediaType, mediaUrls: urls })
+      })
       setLoading(false)
       if (res.ok) {
         setContent('')

@@ -37,12 +37,22 @@ export async function GET(req: Request) {
       where = { authorId: { in: ids } };
     }
   }
-  const posts = await (prisma as any).post.findMany({
-    where,
-    orderBy: { createdAt: 'desc' },
-    include: { author: true, _count: { select: { likes: true, comments: true } }, media: { orderBy: { order: 'asc' } } }
-  })
-  return Response.json(posts)
+  try {
+    const posts = await (prisma as any).post.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      include: { author: true, _count: { select: { likes: true, comments: true } }, media: { orderBy: { order: 'asc' } } }
+    })
+    return Response.json(posts)
+  } catch (e) {
+    // Fallback per ambienti senza la relazione PostMedia ancora migrata
+    const posts = await prisma.post.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      include: { author: true, _count: { select: { likes: true, comments: true } } }
+    })
+    return Response.json(posts)
+  }
 }
 
 export async function POST(req: Request) {
@@ -86,7 +96,10 @@ export async function POST(req: Request) {
       const body = await req.json();
       content = body.content;
       mediaType = body.mediaType;
-      if (Array.isArray(body.filesBase64) && body.filesBase64.length > 0) {
+      if (Array.isArray(body.mediaUrls) && body.mediaUrls.length > 0) {
+        mediaUrls = body.mediaUrls
+        mediaUrl = mediaUrls[0]
+      } else if (Array.isArray(body.filesBase64) && body.filesBase64.length > 0) {
         const folder = mediaType === 'video' ? 'post-videos' : 'post-images';
         try {
           const uploads = await Promise.all(
