@@ -14,6 +14,7 @@ export default function NewPost() {
   const [mediaType, setMediaType] = useState<'image' | 'video'>('image');
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
+  const [videoUrl, setVideoUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showMediaMenu, setShowMediaMenu] = useState(false);
@@ -91,7 +92,27 @@ export default function NewPost() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-  if (files.length > 0) {
+  if (mediaType === 'video') {
+      // Pubblica post con link video
+      const res = await fetch('/api/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content, mediaType: 'video', mediaUrl: videoUrl })
+      })
+      setLoading(false)
+      if (res.ok) {
+        setContent('')
+        setVideoUrl('')
+        setPosted(true)
+        setTimeout(() => { window.location.reload() }, 800)
+      } else {
+        const j = await res.json().catch(() => ({} as any))
+        setError(j.error || 'Errore di pubblicazione')
+      }
+      return
+    }
+
+    if (files.length > 0) {
       // Carico singolarmente ogni file su /api/upload e poi mando solo gli URL a /api/posts
       const urls: string[] = []
       for (const f of files) {
@@ -260,27 +281,27 @@ export default function NewPost() {
           </div>
 
           {/* Add media split/menu */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setShowMediaMenu(v=>!v)}
-              className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-              {t.addMedia}
-            </button>
-            {showMediaMenu && (
-              <div className="absolute z-10 bottom-full right-0 mb-2 w-44 rounded-xl border bg-white shadow">
-                <button
-                  type="button"
-                  className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
-                  onClick={() => { setShowMediaMenu(false); fileInputRef.current?.click(); }}
-                >
-                  {t.fromDevice}
-                </button>
-                {mediaType === 'image' && (
+          {mediaType === 'image' && (
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowMediaMenu(v=>!v)}
+                className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+                {t.addMedia}
+              </button>
+              {showMediaMenu && (
+                <div className="absolute z-10 bottom-full right-0 mb-2 w-44 rounded-xl border bg-white shadow">
+                  <button
+                    type="button"
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
+                    onClick={() => { setShowMediaMenu(false); fileInputRef.current?.click(); }}
+                  >
+                    {t.fromDevice}
+                  </button>
                   <button
                     type="button"
                     className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
@@ -288,10 +309,10 @@ export default function NewPost() {
                   >
                     {t.takePhoto}
                   </button>
-                )}
-              </div>
-            )}
-          </div>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="hidden sm:block ml-auto" />
           <button
@@ -304,24 +325,26 @@ export default function NewPost() {
 
   <div className="flex flex-col gap-2">
 
-          {/* Hidden file inputs */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept={mediaType === 'image' ? 'image/*' : 'video/*'}
-            className="hidden"
-            onChange={handleFileChange}
-            multiple={mediaType === 'image'}
-          />
+          {/* Hidden file inputs (solo immagini) */}
           {mediaType === 'image' && (
-            <input
-              ref={cameraInputRef}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              className="hidden"
-              onChange={handleFileChange}
-            />
+            <>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleFileChange}
+                multiple
+              />
+              <input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+            </>
           )}
 
           {previews.length > 0 && mediaType === 'image' && (
@@ -336,8 +359,34 @@ export default function NewPost() {
               ))}
             </div>
           )}
-          {previews.length > 0 && mediaType === 'video' && (
-            <video src={previews[0]} controls className="mt-1 max-h-60 rounded-xl border object-contain" />
+          {mediaType === 'video' && (
+            <div className="mt-1 flex flex-col gap-2">
+              <input
+                type="url"
+                value={videoUrl}
+                onChange={e=>setVideoUrl(e.target.value)}
+                placeholder={t.urlVideo}
+                className="w-full rounded-xl border px-3 py-2"
+              />
+              {videoUrl ? (
+                <div className="mt-1">
+                  {/* Preview semplice: se non è YouTube, prova con <video> */}
+                  {/(youtube\.com|youtu\.be)\//.test(videoUrl) ? (
+                    <div className="w-full aspect-video rounded-xl border overflow-hidden">
+                      <iframe
+                        src={videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'www.youtube.com/embed/')}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        className="w-full h-full"
+                        title="Preview video"
+                      />
+                    </div>
+                  ) : (
+                    <video src={videoUrl} controls className="w-full max-h-60 rounded-xl border object-contain" />
+                  )}
+                </div>
+              ) : null}
+            </div>
           )}
           {/* rimosso duplicato del pulsante Pubblica su mobile */}
         </div>
