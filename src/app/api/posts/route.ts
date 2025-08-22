@@ -63,18 +63,21 @@ export async function POST(req: Request) {
       const formData = await req.formData()
       content = formData.get('content')?.toString() || ''
       mediaType = formData.get('mediaType')?.toString() || undefined
-      const file = formData.get('file') as File | null
       const urlFromForm = formData.get('mediaUrl')?.toString() || ''
-      if (file && file.size > 0) {
+      const files = formData.getAll('files') as File[]
+      if (files && files.length > 0) {
         try {
-          const buffer = Buffer.from(await file.arrayBuffer())
-          const base64 = `data:${file.type};base64,${buffer.toString('base64')}`
           const folder = mediaType === 'video' ? 'post-videos' : 'post-images'
-          const uploadRes = await cloudinary.uploader.upload(base64, { folder })
-          mediaUrl = uploadRes.secure_url
+          const uploads = await Promise.all(files.map(async (f) => {
+            const buffer = Buffer.from(await f.arrayBuffer())
+            const base64 = `data:${f.type};base64,${buffer.toString('base64')}`
+            return cloudinary.uploader.upload(base64, { folder })
+          }))
+          mediaUrls = uploads.map(u => u.secure_url)
+          mediaUrl = mediaUrls[0] || ''
         } catch (err) {
-          logError('Errore upload Cloudinary (multipart):', err)
-          return Response.json({ error: 'Errore upload immagine' }, { status: 500 })
+          logError('Errore upload Cloudinary (multipart multi):', err)
+          return Response.json({ error: 'Errore upload immagini' }, { status: 500 })
         }
       } else if (urlFromForm) {
         mediaUrl = urlFromForm

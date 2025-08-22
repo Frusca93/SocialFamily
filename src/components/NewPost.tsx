@@ -15,6 +15,7 @@ export default function NewPost() {
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [showMediaMenu, setShowMediaMenu] = useState(false);
   const [posted, setPosted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -89,19 +90,14 @@ export default function NewPost() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
+    setError(null);
   if (files.length > 0) {
-      // Caricamento multiplo immagini: invia tutte come base64 in una singola richiesta
-      const encoded = await Promise.all(files.map(async (f) => {
-        const reader = new FileReader()
-        const p: Promise<string> = new Promise((resolve) => { reader.onloadend = () => resolve(reader.result as string) })
-        reader.readAsDataURL(f)
-        return p
-      }))
-      const res = await fetch('/api/posts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content, mediaType, filesBase64: encoded })
-      })
+      // FormData per caricare file multipli (immagini)
+      const fd = new FormData()
+      fd.set('content', content)
+      fd.set('mediaType', mediaType)
+      files.forEach(f => fd.append('files', f))
+      const res = await fetch('/api/posts', { method: 'POST', body: fd })
       setLoading(false)
       if (res.ok) {
         setContent('')
@@ -109,6 +105,9 @@ export default function NewPost() {
         setPreviews([])
         setPosted(true)
         setTimeout(() => { window.location.reload() }, 800)
+      } else {
+        const j = await res.json().catch(() => ({} as any))
+        setError(j.error || 'Errore di pubblicazione')
       }
       return
     }
@@ -123,6 +122,9 @@ export default function NewPost() {
       setContent('');
       setPosted(true);
       setTimeout(() => { window.location.reload(); }, 800);
+    } else {
+      const j = await res.json().catch(() => ({} as any))
+      setError(j.error || 'Errore di pubblicazione')
     }
   }
 
@@ -156,6 +158,11 @@ export default function NewPost() {
       {posted && (
         <div className="rounded-xl bg-green-50 text-green-700 text-sm px-3 py-2 border border-green-100">
           {t.published}
+        </div>
+      )}
+      {error && (
+        <div className="rounded-xl bg-red-50 text-red-700 text-sm px-3 py-2 border border-red-100">
+          {error}
         </div>
       )}
 
