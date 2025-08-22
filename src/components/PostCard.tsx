@@ -384,6 +384,8 @@ function InlineComments({ postId, onReplyPosted }: { postId: string; onReplyPost
   const [replyText, setReplyText] = useState('')
   const [replyPosting, setReplyPosting] = useState(false)
   const { data: session } = useSession()
+  const replyingRef = useRef(false)
+  useEffect(() => { replyingRef.current = !!replyFor }, [replyFor])
 
   useEffect(() => {
     let timer: any
@@ -393,10 +395,10 @@ function InlineComments({ postId, onReplyPosted }: { postId: string; onReplyPost
         const res = await fetch(`/api/comments?postId=${encodeURIComponent(postId)}`, { cache: 'no-store' })
         if (!res.ok) {
           setError(`Errore ${res.status}`)
-          setItems([])
+          if (!replyingRef.current) setItems([])
         } else {
           const data = await res.json().catch(() => [])
-          setItems(Array.isArray(data) ? data : [])
+          if (!replyingRef.current) setItems(Array.isArray(data) ? data : [])
         }
       } catch {
         setError('Errore di rete')
@@ -464,17 +466,19 @@ function InlineComments({ postId, onReplyPosted }: { postId: string; onReplyPost
     setReplyPosting(false)
   }
 
-  const ReplyForm = ({ targetId }: { targetId: string }) => (
-    replyFor === targetId ? (
+  const ReplyForm = ({ targetId }: { targetId: string }) => {
+    const inputRef = useRef<HTMLInputElement | null>(null)
+    useEffect(() => { inputRef.current?.focus() }, [])
+    return replyFor === targetId ? (
       <form onSubmit={(e)=>{ e.preventDefault(); sendReply(targetId) }} className="mt-2 flex gap-2">
-        <input value={replyText} onChange={e=>setReplyText(e.target.value)} placeholder={t.writeReply} className="flex-1 rounded-xl border px-3 py-1.5 text-sm" />
+        <input ref={inputRef} autoFocus value={replyText} onChange={e=>setReplyText(e.target.value)} placeholder={t.writeReply} className="flex-1 rounded-xl border px-3 py-1.5 text-sm" />
         <button disabled={!replyText.trim() || replyPosting} className="rounded-xl border px-3 py-1.5 text-sm disabled:opacity-60">{t.send}</button>
       </form>
     ) : null
-  )
+  }
 
   const Thread = ({ c, depth = 0 }: { c: any; depth?: number }) => (
-    <div className={depth === 0 ? 'border-b pb-2 last:border-b-0' : 'mt-2 ml-4 pl-3 border-l'}>
+    <div className={depth === 0 ? 'border-b pb-2 last:border-b-0' : 'mt-2 pl-3 border-l-2 border-violet-400'}>
       <div className="flex items-start gap-2">
         <div className="flex-1">
           <div className={depth === 0 ? 'font-semibold text-sm' : 'font-semibold text-sm'}>

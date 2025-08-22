@@ -98,8 +98,10 @@ export default function CommentsModal({ postId, onClose }: { postId: string, onC
     return map
   }, [comments])
 
-  const ReplyForm = ({ targetId }: { targetId: string }) => (
-    replyFor === targetId ? (
+  const ReplyForm = ({ targetId }: { targetId: string }) => {
+    const inputRef = React.useRef<HTMLInputElement | null>(null)
+    React.useEffect(() => { inputRef.current?.focus() }, [])
+    return replyFor === targetId ? (
       <form
         onSubmit={async (e) => {
           e.preventDefault()
@@ -113,14 +115,14 @@ export default function CommentsModal({ postId, onClose }: { postId: string, onC
         }}
         className="mt-2 flex gap-2"
       >
-        <input value={replyText} onChange={e=>setReplyText(e.target.value)} placeholder={t.writeReply} className="flex-1 rounded-xl border px-3 py-1.5 text-sm" />
+        <input ref={inputRef} autoFocus value={replyText} onChange={e=>setReplyText(e.target.value)} placeholder={t.writeReply} className="flex-1 rounded-xl border px-3 py-1.5 text-sm" />
         <button className="rounded-xl border px-3 py-1.5 text-sm">{t.send}</button>
       </form>
     ) : null
-  )
+  }
 
   const Thread = ({ c, depth = 0 }: { c: CommentT; depth?: number }) => (
-    <div className={depth === 0 ? 'border-b pb-2' : 'mt-2 ml-4 pl-3 border-l'}>
+    <div className={depth === 0 ? 'border-b pb-2' : 'mt-2 pl-3 border-l-2 border-violet-400'}>
       <div className="flex items-start gap-2">
         <div className="flex-1">
           <div className={depth === 0 ? 'font-semibold' : 'font-semibold text-sm'}>
