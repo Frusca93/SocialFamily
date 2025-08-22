@@ -23,16 +23,20 @@ export default function LoginPage() {
 
   return (
     <div className="mx-auto max-w-md px-4 py-16">
-      <h1 className="mb-6 text-2xl font-semibold">Accedi</h1>
+      <div className="flex flex-col items-center">
+        <img src="/Alora.png" alt="Alora" className="h-16 w-16" />
+        <div className="mt-2 text-3xl font-bold text-purple-600">Alora</div>
+      </div>
+      <h1 className="mt-6 mb-4 text-center text-xl font-semibold">Accedi</h1>
       <form onSubmit={onSubmit} className="space-y-3">
         <input className="w-full rounded-xl border p-3" placeholder="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} />
         <input className="w-full rounded-xl border p-3" placeholder="Password" type="password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} />
         {error && <p className="text-sm text-red-600">{error}</p>}
-        <button disabled={loading} className="w-full rounded-xl bg-blue-600 p-3 font-semibold text-white disabled:opacity-50">{loading ? '...' : 'Entra'}</button>
+        <button disabled={loading} className="w-full rounded-xl bg-purple-600 hover:bg-purple-700 p-3 font-semibold text-white disabled:opacity-50">{loading ? '...' : 'Entra'}</button>
       </form>
       <div className="mt-4 text-sm flex justify-between">
-        <span>Nuovo qui? <Link className="text-blue-600 underline" href="/register">Registrati</Link></span>
-        <Link className="text-blue-600 underline" href="/forgot-password">Password dimenticata?</Link>
+        <span>Nuovo qui? <Link className="text-purple-600 underline" href="/register">Registrati</Link></span>
+        <Link className="text-purple-600 underline" href="/forgot-password">Password dimenticata?</Link>
       </div>
     </div>
   )
